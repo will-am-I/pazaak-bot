@@ -14,6 +14,7 @@ class Player:
       self.selection = []
       self.sideDeck = []
       self.fieldCards = []
+      self.fieldCardIDs = []
       self.points = 0
       self.tiebreaker = False
       self.stood = False
@@ -48,6 +49,7 @@ class Player:
    def play (self, value=0, card=None):
       if card is None:
          self.fieldCards.append(value)
+         self.fieldCardIDs.append(str(value))
       else:
          self.sideDeck.remove(card)
          
@@ -62,12 +64,21 @@ class Player:
                if fieldCard in values:
                   self.fieldCards[i] *= -1
          elif card == "D":
-            self.fieldCards.append(self.fieldCards[len(self.fieldCards) - 1])
+            self.fieldCards.append(self.fieldCards[len(self.fieldCards)-1])
+            self.fieldCardIDs.append(f"dc{self.fieldCards[len(self.fieldCards)-1]}")
          elif card == "T":
             self.tiebreaker = True
             self.fieldCards.append(value)
+            self.fieldCardIDs.append("tc")
          else:
             self.fieldCards.append(value)
+
+            if '+/-' in card:
+               self.fieldCardIDs.append(f"pm{value}")
+            elif value > 0:
+               self.fieldCardIDs.append(f"p{value}")
+            else:
+               self.fieldCardIDs.append(f"m{value}")
 
    def total (self):
       total = 0

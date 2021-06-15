@@ -51,12 +51,70 @@ class Info(commands.Cog):
       db.close()
 
    @commands.command()
-   async def top (self, ctx):
-      pass
+   async def top (self, ctx, all=None):
+      db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+      cursor = db.cursor()
+
+      try:
+         if all is None:
+            members = [member.id for member in ctx.message.guild.fetch_members()]
+            members = ', '.join(members)
+
+            cursor.execute(f"SELECT discordid, wins, losses FROM pazaak_balance WHERE discordid IN ({members}) ORDER BY wins DESC, losses ASC")
+            if cursor.rowcount < 10:
+               rows = cursor.rowcount
+            else:
+               rows = 10
+            results = cursor.fetchall()
+
+            leaderboard = ""
+            for i in range(rows):
+               user = self.client.fetch_user(results[i][0])
+               leaderboard += f"**{i+1}.**\t{user.name}\t{results[i][1]}/{results[i][2]}\n"
+
+            await ctx.send(embed=discord.Embed(title=f"{ctx.message.guild.name}'s Pazaak Leaderboard", colour=discord.Colour(0x4e7e8a), description=leaderboard))
+         if all == "all":
+            cursor.execute("SELECT discordid, wins, losses FROM pazaak_balance ORDER BY wins DESC, losses ASC")
+            if cursor.rowcount < 10:
+               rows = cursor.rowcount
+            else:
+               rows = 10
+            results = cursor.fetchall()
+
+            leaderboard = ""
+            for i in range(rows):
+               user = self.client.fetch_user(results[i][0])
+               leaderboard += f"**{i+1}.**\t{user.name}\t{results[i][1]}/{results[i][2]}\n"
+
+            await ctx.send(embed=discord.Embed(title="Pazaak Leaderboard", colour=discord.Colour(0x4e7e8a), description=leaderboard))
+      except Exception as e:
+         print(str(e))
+
+      db.close()
 
    @commands.command()
    async def sidedeck (self, ctx):
-      pass
+      db = MySQLdb.connect("localhost", config['database_user'], config['database_pass'], config['database_schema'])
+      cursor = db.cursor()
+
+      cursor.execute(f"SELECT plus_one, plus_two, plus_three, plus_four, plus_five, plus_six, minus_one, minus_two, minus_three, minus_four, minus_five, minus_six, plus_minus_one, plus_minus_two, plus_minus_three, plus_minus_four, plus_minus_five, plus_minus_six, flip_two_four, flip_three_six, double_card, tiebreaker_card FROM pazaak WHERE discordid = {ctx.message.author.id}")
+
+      if cursor.rowcount > 0:
+         cardAmounts = cursor.fetchone()
+
+         embed = discord.Embed(title="Your deck", colour=discord.Colour(0x4e7e8a))
+         for card in cards['cards']:
+            if any(i in card['code'] for i in ['F', 'D', 'T']):
+               embed.add_field(name=f"[{card['code']}] {card['name']}", value=str(card['cost']), inline=False)
+            else:
+               embed.add_field(name=f"[{card['code']}]", value=str(card['cost']), inline=True)
+         
+         user = self.client.get_user(ctx.message.author.id)
+         await user.send(embed=embed)
+      else:
+         ctx.send("You currently don't have a pazaak deck. Play your first game of pazaak to obtain a deck.")
+      
+      db.close()
       
 def setup (client):
    client.add_cog(Info(client))
