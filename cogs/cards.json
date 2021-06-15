@@ -1,0 +1,146 @@
+{
+   "cards":
+   [
+      {
+         "code": "+1",
+         "db_name": "p1",
+         "cost": 200
+      },
+      {
+         "code": "+2",
+         "db_name": "p2",
+         "cost": 150
+      },
+      {
+         "code": "+3",
+         "db_name": "p3",
+         "cost": 100
+      },
+      {
+         "code": "+4",
+         "db_name": "p3",
+         "cost": 50
+      },
+      {
+         "code": "+5",
+         "db_name": "p5",
+         "cost": 25
+      },
+      {
+         "code": "+6",
+         "db_name": "p6",
+         "cost": 10
+      },
+      {
+         "code": "-1",
+         "db_name": "m1",
+         "cost": 200
+      },
+      {
+         "code": "-2",
+         "db_name": "m2",
+         "cost": 150
+      },
+      {
+         "code": "-3",
+         "db_name": "m3",
+         "cost": 100
+      },
+      {
+         "code": "-4",
+         "db_name": "m3",
+         "cost": 50
+      },
+      {
+         "code": "-5",
+         "db_name": "m5",
+         "cost": 25
+      },
+      {
+         "code": "-6",
+         "db_name": "m6",
+         "cost": 10
+      },
+      {
+         "code": "+/-1",
+         "db_name": "pm1",
+         "cost": 400
+      },
+      {
+         "code": "+/-2",
+         "db_name": "pm2",
+         "cost": 300
+      },
+      {
+         "code": "+/-3",
+         "db_name": "pm3",
+         "cost": 250
+      },
+      {
+         "code": "+/-4",
+         "db_name": "pm3",
+         "cost": 200
+      },
+      {
+         "code": "+/-5",
+         "db_name": "pm5",
+         "cost": 150
+      },
+      {
+         "code": "+/-6",
+         "db_name": "pm6",
+         "cost": 100
+      },
+      {
+         "code": "F2/4",
+         "name": "Flip 2/4",
+         "db_name": "f24",
+         "cost": 700
+      },
+      {
+         "code": "F3/6",
+         "name": "Flip 3/6",
+         "db_name": "f36",
+         "cost": 900
+      },
+      {
+         "code": "D",
+         "name": "Double",
+         "db_name": "dc",
+         "cost": 750
+      },
+      {
+         "code": "T",
+         "name": "Tiebreaker",
+         "db_name": "tc",
+         "cost": 1200
+      }
+   ],
+   "prestige":
+   {
+      "F2/4":
+      {
+         "requirement": "Must have won at least 10 games and played at least 30.",
+         "wins": 10,
+         "games": 30
+      },
+      "F3/6":
+      {
+         "requirement": "Must have won at least 10 games and played at least 30.",
+         "wins": 10,
+         "games": 30
+      },
+      "D":
+      {
+         "requirement": "Must have won at least 20 games and played at least 50.",
+         "wins": 20,
+         "games": 50
+      },
+      "T":
+      {
+         "requirement": "Must have won at least 50 games and played at least 100.",
+         "wins": 50,
+         "games": 100
+      }
+   }
+}
