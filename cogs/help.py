@@ -16,7 +16,7 @@ class Help(commands.Cog):
          await ctx.send(embed=embed)
       elif command.isdigit():
          if command == "1":
-            embed = discord.Embed(title="How to play pazaak", colour=discord.Colour(0x4e7e8a), description="Pazaak is a card game in Star Wars that is similar to BlackJack.\nPlayers will be dealt a card each turn and have the option to end, stand, or play a card.\nPlayers may not pass 20 in total at the end of their turn.\nType **p.help <command>** for more information about each one.")
+            embed = discord.Embed(title="Playing pazaak", colour=discord.Colour(0x4e7e8a), description="Pazaak is a card game in Star Wars that is similar to BlackJack.\nPlayers will be dealt a card each turn and have the option to end, stand, or play a card.\nPlayers may not pass 20 in total at the end of their turn.\nType **p.help <command>** for more information about each one.")
             embed.add_field(name="**p.duel <member> [wager]**", value="Use this to challenge another member to a game of pazaak.", inline=False)
             embed.add_field(name="**p.accept**", value="Use this to accept the pazaak challenge.", inline=False)
             embed.add_field(name="**p.decline**", value="Use this to delcine the pazaak challenge.", inline=False)
@@ -35,7 +35,7 @@ class Help(commands.Cog):
             embed.add_field(name="p.done", value="Use this to finish your side deck selection and receive your playable cards.", inline=False)
             embed.set_footer(text="Arguments with '<>' are required; arguments with '[]' are optional.")
             await ctx.send(embed=embed)
-         elif command == "3" and ctx.message.author.server_permissions.administrator:
+         elif command == "3" and ctx.message.author.guild_permissions.administrator:
             embed = discord.Embed(title="Server settings", colour=discord.Colour(0x4e7e8a), description="These are settings you may set up for ease of strain on text channels.\nType **p.help <command>** For more information on each one.")
             embed.add_field(name="**p.setup <type> <channel>**", value="Use this to determine which channels to play, send info, and/or use the store.\nOnly members with admin privileges can use this.", inline=False)
             embed.add_field(name="**p.unset <channel>**", value="Use this to allow members to use any channel to play, send info, and/or use the store.\nOnly members with admin privileges can use this.", inline=False)
@@ -61,8 +61,8 @@ class Help(commands.Cog):
             await ctx.send(embed=discord.Embed(title="last", colour=discord.Colour(0x4e7e8a), description="This is used to pull the last side deck you used.\nYou will still be free to remove and add cards, and you must still type done to confirm the side deck.\n\nIf you have not played a game before, you will not have a previously used side deck, and this command will not work."))
          elif command == "done":
             await ctx.send(embed=discord.Embed(title="done", colour=discord.Colour(0x4e7e8a), description="This is used to confirm your side deck.\nIf you have fewer than 10 cards, this will not work.\nAfter typing 'done', you will receive your 4 playable cards.\n\nOnce both players have confirmed their respective side decks, play will continue in the main pazaak play channel."))
-         elif command == "pazaak":
-            embed = discord.Embed(title="p.pazaak <member> [wager]", colour=discord.Colour(0x4e7e8a), description=f"This command is used to challenge another member to pazaak.\nThe challenge will expire after 3 minutes.\nBe sure to keep all pazaak play in {self.client.get_channel(847627259275116554).mention}.")
+         elif command == "duel":
+            embed = discord.Embed(title="p.pazaak <member> [wager]", colour=discord.Colour(0x4e7e8a), description=f"This command is used to challenge another member to pazaak.\nThe challenge will expire after 3 minutes.")
             embed.add_field(name="<member>", value="Tag another server member using @.", inline=False)
             embed.add_field(name="[wager]", value="Enter a numerical wager amount.\nThe amount must be more than 50 and both players must have the amount on hand.", inline=False)
             embed.set_footer(text="Arguments with '<>' are required; arguments with '[]' are optional.")
@@ -82,26 +82,26 @@ class Help(commands.Cog):
          elif command == "play":
             embed = discord.Embed(title="p.play <card> [sign]", colour=discord.Colour(0x4e7e8a), description="This command is used to play a card from your side deck.\nCheck your DM's for your playable side deck.\nAfterwards you must still type !end or !stand for play to continue\nIf your total reaches 20 at any time your turn will automatically end and acts as if you already typed !stand.")
             embed.add_field(name="<card>", value="Type the card you wish to play surrounded by '[]'.\n_(For example, a '+4' card would be typed as '[+4]' and a '-1' card would be typed as '[-1]'.)_\nOther specialty cards will just take the first letter.\n_(For example, a Double card would be typed as '[D]' and a Flip 2/4 card would be typed as '[F2/4]'.)_", inline=False)
-            embed.add_field(name="[sign]", value="Type '+' (plus) or '-' (minus) to determine if the played card will be plus or minus.\nThis is only used for +/- cards and the Tiebreaker card.\n_(For example, a '+/- 2' card to be negative will be typed as '[+/-2] -' and a tiebreaker card to be positive will be typed as '[T] +'.)_")
+            embed.add_field(name="[sign]", value="Type '+' (plus) or '-' (minus) to determine if the played card will be plus or minus.\nThis is only used for +/- cards and the Tiebreaker card.\n_(For example, a '+/- 2' card to be negative will be typed as '[+/-2] -' and a tiebreaker card to be positive will be typed as '[T] +'.)_", inline=False)
             embed.set_footer(text="Arguments with '<>' are required; arguments with '[]' are optional.")
             await ctx.send(embed=embed)
-         elif command == "setup" and ctx.message.author.server_permissions.administrator:
+         elif command == "setup" and ctx.message.author.guild_permissions.administrator:
             embed = discord.Embed(title="p.setup <type> <channel>", colour=discord.Colour(0x4e7e8a), description="This command is used to set which channels to play, send info, and/or shop.\nBy default members may use any channel.")
-            embed.add_field(name="<type>", value="Type 'play', 'store', or 'general' to determine which type of information should be displayed in the specified channel.")
-            embed.add_field(name="<channel>", value="Tag the channel you wish to set the information to go to.")
+            embed.add_field(name="<type>", value="Type 'play', 'store', or 'general' to determine which type of information should be displayed in the specified channel.", inline=False)
+            embed.add_field(name="<channel>", value="Tag the channel you wish to set the information to go to.", inline=False)
             embed.set_footer(text="Arguments with '<>' are required; arguments with '[]' are optional.")
             await ctx.send(embed=embed)
-         elif command == "unset" and ctx.message.author.server_permissions.administrator:
+         elif command == "unset" and ctx.message.author.guild_permissions.administrator:
             embed = discord.Embed(title="p.unset <type>", colour=discord.Colour(0x4e7e8a), description="This command is used to allow members to use any channel to play, send info, and/or shop.\nBy default members may use any channel.")
-            embed.add_field(name="<type>", value="Type 'play', 'store', or 'general' to determine which type of information is allowed anywhere.")
+            embed.add_field(name="<type>", value="Type 'play', 'store', or 'general' to determine which type of information is allowed anywhere.", inline=False)
             embed.set_footer(text="Arguments with '<>' are required; arguments with '[]' are optional.")
             await ctx.send(embed=embed)
-         elif command == "maxcredits" and ctx.message.author.server_permissions.administrator:
+         elif command == "maxcredits" and ctx.message.author.guild_permissions.administrator:
             embed = discord.Embed(title="p.maxcredits [amount]", colour=discord.Colour(0x4e7e8a), description="This command is used to set the maximum number of credits members can earn at a time.\nMembers may earn credits every 30 seconds by talking in any text channel.\nThe minimum will always be 1.")
             embed.add_field(name="[amount]", value="Type the maximum amount members can earn.\nIf nothing is entered the maximum reverts to its default at 5 credits.", inline=False)
             embed.set_footer(text="Arguments with '<>' are required; arguments with '[]' are optional.")
             await ctx.send(embed=embed)
-         elif command == "separate" and ctx.message.author.server_permissions.adminstrator:
+         elif command == "separate" and ctx.message.author.guild_permissions.adminstrator:
             embed = discord.Embed(title="p.separate <enable/disable>", colour=discord.Colour(0x4e7e8a), description="This command is used if you'd like the bot to create a separate channel for each game of pazaak.\nOnce the game is done the channel is automatically deleted.")
             embed.add_field(name="<enable/disable>", value="Type 'enable' or 'disable' to choose whether separate channels are used.\nThis is disabled by default.", inline=False)
             embed.set_footer(text="Arguments with '<>' are required; arguments with '[]' are optional.")

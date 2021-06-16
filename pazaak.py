@@ -1,4 +1,4 @@
-import MySQLdb, os, json
+import discord, MySQLdb, os, json
 from discord.ext import commands
 
 client = commands.Bot(command_prefix = 'p.')
@@ -7,26 +7,31 @@ client.remove_command('help')
 with open('./config.json') as data:
    config = json.load(data)
 
+@client.event
+async def on_ready ():
+   await client.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name="Pazaak, type p.help for info"))
+   print('Pure Pazaak!')
+
 @client.command()
-async def load(ctx, extension):
+async def load (ctx, extension):
    if ctx.message.author.id == config['dev_id']:
       client.load_extension(f'cogs.{extension}')
       await ctx.send(f'{extension} has been loaded in')
    
 @client.command()
-async def unload(ctx, extension):
+async def unload (ctx, extension):
    if ctx.message.author.id == config['dev_id']:
       client.unload_extension(f'cogs.{extension}')
       await ctx.send(f'{extension} has been unloaded out')
    
 @client.command()
-async def reload(ctx, extension):
+async def reload (ctx, extension):
    if ctx.message.author.id == config['dev_id']:
       client.unload_extension(f'cogs.{extension}')
       client.load_extension(f'cogs.{extension}')
       await ctx.send(f'{extension} has been reloaded')
 
-@client.event()
+@client.event
 async def on_guild_join (guild):
    db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
    cursor = db.cursor()

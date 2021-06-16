@@ -2,9 +2,9 @@ import discord, json, MySQLdb
 from discord.ext import commands, tasks
 from datetime import datetime, timedelta
 from random import randint
-from ..game import Game, PLAYER_1, PLAYER_2, TIED
+from game import Game, PLAYER_1, PLAYER_2, TIED
 
-with open('../config.json') as data:
+with open('./config.json') as data:
    config = json.load(data)
 with open('./cards.json') as data:
    cards = json.load(data)

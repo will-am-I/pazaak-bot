@@ -2,7 +2,7 @@ import json, MySQLdb
 
 with open('./config.json') as data:
    config = json.load(data)
-with open('./cogs/cards.json') as data:
+with open('./cards.json') as data:
    cards = json.load(data)
 
 class Player:

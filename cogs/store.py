@@ -1,7 +1,7 @@
 import discord, json, MySQLdb
 from discord.ext import commands
 
-with open('../config.json') as data:
+with open('./config.json') as data:
    config = json.load(data)
 with open('./cards.json') as data:
    cards = json.load(data)
