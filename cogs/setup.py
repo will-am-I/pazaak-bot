@@ -1,7 +1,7 @@
 import discord, json, MySQLdb
 from discord.ext import commands
 
-with open('../config.json') as data:
+with open('./config.json') as data:
    config = json.load(data)
 
 class Setup(commands.Cog):
@@ -23,6 +23,9 @@ class Setup(commands.Cog):
             cursor.execute(f"UPDATE server_info SET general_channel = {channel.id} WHERE server_id = {ctx.message.guild.id}")
          elif type == "store":
             cursor.execute(f"UPDATE server_info SET store_channel = {channel.id} WHERE server_id = {ctx.message.guild.id}")
+
+         await ctx.send(f"{channel.mention} is now the pazaak {type} channel.")
+
          db.commit()
       except Exception as e:
          db.rollback()
@@ -44,6 +47,9 @@ class Setup(commands.Cog):
             cursor.execute(f"UPDATE server_info SET general_channel = NULL WHERE server_id = {ctx.message.guild.id}")
          elif type == "store":
             cursor.execute(f"UPDATE server_info SET store_channel = NULL WHERE server_id = {ctx.message.guild.id}")
+
+         await ctx.send(f"There is now no disignated pazaak {type} channel.")
+
          db.commit()
       except Exception as e:
          db.rollback()
@@ -58,6 +64,9 @@ class Setup(commands.Cog):
 
       try:
          cursor.execute(f"UPDATE server_info SET max_credits = {amount} WHERE server_id = {ctx.message.guild.id}")
+         
+         await ctx.send(f"The server's default max credits is now {amount}.")
+
          db.commit()
       except Exception as e:
          db.rollback()
@@ -74,6 +83,9 @@ class Setup(commands.Cog):
 
       try:
          cursor.execute(f"UPDATE server_info SET separate_channel = {value} WHERE server_id = {ctx.message.guild.id}")
+
+         await ctx.send(f"Separate pazaak game channels are now {action}d.")
+         
          db.commit()
       except Exception as e:
          db.rollback()

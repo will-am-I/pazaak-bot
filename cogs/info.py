@@ -1,7 +1,7 @@
 import discord, json, MySQLdb
 from discord.ext import commands
 
-with open('../config.json') as data:
+with open('./config.json') as data:
    config = json.load(data)
 with open('./cards.json') as data:
    cards = json.load(data)
@@ -17,9 +17,11 @@ class Info(commands.Cog):
       cursor = db.cursor()
 
       try:
-         cursor.execute(f"SELECT * FROM pazaak WHERE discordid = {ctx.message.author.id}")
-         if cursor.rowcount > 0:
-            cursor.execute("SELECT discordid, wins, losses FROM pazaak ORDER BY wins DESC, losses ASC")
+         cursor.execute(f"SELECT wins + losses AS games FROM pazaak_balance WHERE discordid = {ctx.message.author.id}")
+         games = cursor.fetchone()[0]
+
+         if games > 0:
+            cursor.execute("SELECT discordid, wins, losses FROM pazaak_balance ORDER BY wins DESC, losses ASC")
             results = cursor.fetchall()
             
             i = 0
@@ -41,10 +43,10 @@ class Info(commands.Cog):
                   embed.add_field(name="Wins", value=result[1])
                   embed.add_field(name="Losses", value=result[2])
                   await ctx.send(embed=embed)
-                  break
          else:
             cursor.execute(f"SELECT play_channel FROM server_info WHERE server_id = {ctx.message.guild.id}")
-            await ctx.send(f"{ctx.message.author.mention}, you currently don't have a pazaak rank since you have never played a game. Go to {self.client.get_channel(847627259275116554).mention} and start your first game!")
+            channel = cursor.fetchone()[0]
+            await ctx.send(f"{ctx.message.author.mention}, you currently don't have a pazaak rank since you have never played a game. Go to {self.client.get_channel(channel).mention} and start your first game!")
       except Exception as e:
          print(str(e))
       
@@ -94,10 +96,10 @@ class Info(commands.Cog):
 
    @commands.command()
    async def sidedeck (self, ctx):
-      db = MySQLdb.connect("localhost", config['database_user'], config['database_pass'], config['database_schema'])
+      db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
       cursor = db.cursor()
 
-      cursor.execute(f"SELECT plus_one, plus_two, plus_three, plus_four, plus_five, plus_six, minus_one, minus_two, minus_three, minus_four, minus_five, minus_six, plus_minus_one, plus_minus_two, plus_minus_three, plus_minus_four, plus_minus_five, plus_minus_six, flip_two_four, flip_three_six, double_card, tiebreaker_card FROM pazaak WHERE discordid = {ctx.message.author.id}")
+      cursor.execute(f"SELECT p1, p2, p3, p4, p5, p6, m1, m2, m3, m4, m5, m6, pm1, pm2, pm3, pm4, pm5, pm6, f24, f36, dc, tc FROM pazaak_inventory WHERE discordid = {ctx.message.author.id}")
 
       if cursor.rowcount > 0:
          cardAmounts = cursor.fetchone()
@@ -112,7 +114,7 @@ class Info(commands.Cog):
          user = self.client.get_user(ctx.message.author.id)
          await user.send(embed=embed)
       else:
-         ctx.send("You currently don't have a pazaak deck. Play your first game of pazaak to obtain a deck.")
+         await ctx.send("You currently don't have a pazaak deck. Play your first game of pazaak to obtain a deck.")
       
       db.close()
       

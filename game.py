@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 with open('./config.json') as data:
    config = json.load(data)
-with open('./cogs/cards.json') as data:
+with open('./cards.json') as data:
    cards = json.load(data)
 
 PLAYER_1 = 0
