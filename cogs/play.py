@@ -15,6 +15,7 @@ class Play(commands.Cog):
       self.client = client
       self.player1 = None
       self.player2 = None
+      self.challenged = False
       self.challengeTime = datetime.utcnow()
       self.game = None
       self.finishedSelection = False
@@ -27,7 +28,7 @@ class Play(commands.Cog):
       self.timer.stop()
 
    @commands.command()
-   async def duel (self, ctx, player2:discord.Member=None, wager=50):
+   async def duel (self, ctx, player2:discord.Member=None, wager=0):
       if playChannel(ctx.message.guild.id, ctx.message.channel.id):
          if player2 is None:
             await ctx.send("Please tag the member you'd like to challenge.")
@@ -37,45 +38,45 @@ class Play(commands.Cog):
             player1 = ctx.message.author
             wager = int(wager)
 
-            if wager < 50:
-               await ctx.send(f"{player1.mention}, you have to bet at least 50 credits to play pazaak.")
-            else:
-               db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
-               cursor = db.cursor()
+            db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+            cursor = db.cursor()
 
-               try:
-                  cursor.execute(f"SELECT coins FROM member_rank WHERE discordid = {player1.id}")
-                  p1coins = cursor.fetchone()[0]
-                  cursor.execute(f"SELECT coins FROM member_rank WHERE discordid = {player2.id}")
-                  p2coins = cursor.fetchone()[0]
+            try:
+               cursor.execute(f"SELECT credits FROM pazaak_balance WHERE discordid = {player1.id}")
+               p1coins = cursor.fetchone()[0]
+               cursor.execute(f"SELECT credits FROM pazaak_balance WHERE discordid = {player2.id}")
+               p2coins = cursor.fetchone()[0]
 
-                  if wager > p1coins and wager > p2coins:
-                     await ctx.send(f"{player1.mention}, neither you nor {player2.mention} have enough credits for a {wager}-credit bet.")
-                  elif wager > p1coins:
-                     await ctx.send(f"{player1.mention}, you don't have enough credits to bet {wager} credits.")
-                  elif wager > p1coins:
-                     await ctx.send(f"{player1.mention}, {player2.mention} doesn't have enough credits to bet {wager} credits.")
-                  else:
-                     self.player1 = player1
-                     self.player2 = player2
-                     self.challengeTime = datetime.utcnow()
-                     self.wager = wager
-                     self.lastChannel = ctx.message.channel
-                     await ctx.send(f"{player2.mention}, {player1.mention} has challenged you to a game of pazaak! Type !accept to accept the challenge or !decline to decline the challenge. The challenge expires after 3 minutes.")
-               except Exception as e:
-                  print(str(e))
+               if wager > p1coins and wager > p2coins:
+                  await ctx.send(f"{player1.mention}, neither you nor {player2.mention} have enough credits for a {wager}-credit bet.")
+               elif wager > p1coins:
+                  await ctx.send(f"{player1.mention}, you don't have enough credits to bet {wager} credits.")
+               elif wager > p1coins:
+                  await ctx.send(f"{player1.mention}, {player2.mention} doesn't have enough credits to bet {wager} credits.")
+               else:
+                  self.player1 = player1
+                  self.player2 = player2
+                  self.challenged = True
+                  self.challengeTime = datetime.utcnow()
+                  self.wager = wager
+                  self.lastChannel = ctx.message.channel
+                  await ctx.send(f"{player2.mention}, {player1.mention} has challenged you to a game of pazaak! Type **p.accept** to accept the challenge or **p.decline** to decline the challenge. The challenge expires after 3 minutes.")
+            except Exception as e:
+               print(str(e))
 
-               db.close()
+            db.close()
 
    @commands.command()
    async def accept (self, ctx):
-      if playChannel(ctx.message.guild.id, ctx.message.channel.id):
+      if playChannel(ctx.message.guild.id, ctx.message.channel.id) and self.challenged:
          if datetime.utcnow() - timedelta(minutes=3) > self.challengeTime:
             await ctx.send(f"{ctx.message.author.mention}, the challenge time has expired. Make a new challenge by typing !pazaak and tagging your opponent.")
          else:
             if ctx.message.author.id != self.player2.id:
                await ctx.send(f"{ctx.message.author.mention}, you can't accept the challenge for {self.player2.mention}.")
             else:
+               self.challenged = False
+               self.finishedSelection = False
                self.game = Game(self.player1, self.player2, self.wager)
                await ctx.send(f"{self.player1.mention}, {self.player2.mention} has accepted the challenge! Please see your DM's for side deck selection.")
 
@@ -85,19 +86,20 @@ class Play(commands.Cog):
                await user.send(embed=self.game.showCardOptions(PLAYER_2))
 
                if separateChannel(ctx.message.guild.id):
-                  self.lastChannel = await ctx.message.guild.create_text_channel(f"{self.player1.name} v {self.player2.name}")
+                  self.lastChannel = await ctx.message.guild.create_text_channel(f"{self.player1.name} v {self.player2.name}", )
                else:
                   self.lastChannel = ctx.message.channel
 
    @commands.command()
    async def decline (self, ctx):
-      if ctx.message.author.id != self.player2.id:
-         await ctx.send(f"{ctx.message.author.mention}, you can't decline the challenge for {self.player2.mention}.")
-      else:
-         await ctx.send(f"{self.player1.mention}, {self.player2.mention} has declined the challenge. Please make another challenge by typing !pazaak and tagging your opponent.")
-         self.game = None
-         self.player1 = None
-         self.player2 = None
+      if self.challenged:
+         if ctx.message.author.id != self.player2.id:
+            await ctx.send(f"{ctx.message.author.mention}, you can't decline the challenge for {self.player2.mention}.")
+         else:
+            await ctx.send(f"{self.player1.mention}, {self.player2.mention} has declined the challenge. Please make another challenge by typing !pazaak and tagging your opponent.")
+            self.player1 = None
+            self.player2 = None
+            self.challenged = False
 
    @commands.command()
    async def add (self, ctx, card, amount=1):
@@ -108,13 +110,15 @@ class Play(commands.Cog):
          if ctx.message.author.id == self.player2.id and not self.game.finishedSelection(PLAYER_2):
             currentPlayer = PLAYER_2
          
-         if currentPlayer > 0:
+         if currentPlayer >= 0:
             card = card.translate({ord(n): None for n in '[]'})
             amount = int(amount)
 
             if amount + self.game.selectedAmount(currentPlayer, card) <= self.game.ownedAmount(currentPlayer, card):
                for i in range(amount):
                   self.game.addSelection(currentPlayer, card)
+               
+               await ctx.send(embed=self.game.showSelection(currentPlayer))
             else:
                await ctx.message.channel.send(f"You currently own {self.game.ownedAmount(currentPlayer, card)} [{card}] cards. Please enter the right card and amount that you currently own that you would like to add.")
       
@@ -127,13 +131,15 @@ class Play(commands.Cog):
          if ctx.message.author.id == self.player2.id and not self.game.finishedSelection(PLAYER_2):
             currentPlayer = PLAYER_2
          
-         if currentPlayer > 0:
+         if currentPlayer >= 0:
             card = card.translate({ord(n): None for n in '[]'})
             amount = int(amount)
 
-            if amount > self.game.selectedAmount(currentPlayer, card):
+            if amount <= self.game.selectedAmount(currentPlayer, card):
                for i in range(amount):
                   self.game.removeSelection(currentPlayer, card)
+               
+               await ctx.send(embed=self.game.showSelection(currentPlayer))
             else:
                await ctx.message.channel.send(f"You only have {self.game.selectedAmount(currentPlayer, card)} [{card}] cards selected. Please enter the right card and amount that you currently have selected that you would like to remove.")
       
@@ -146,8 +152,8 @@ class Play(commands.Cog):
          if ctx.message.author.id == self.player2.id and not self.game.finishedSelection(PLAYER_2):
             currentPlayer = PLAYER_2
          
-         if currentPlayer > 0:
-            cardOptions = next(item['code'] for item in cards['cards'])
+         if currentPlayer >= 0:
+            cardOptions = [item['code'] for item in cards['cards']]
 
             db = MySQLdb.connect("localhost", config['database_user'], config['database_pass'], config['database_schema'])
             cursor = db.cursor()
@@ -158,7 +164,9 @@ class Play(commands.Cog):
 
                for i in range(len(cardOptions)):
                   for _ in range(lastDeck[i]):
-                     self.game.makeSelection(currentPlayer, cardOptions[i], "add")
+                     self.game.addSelection(currentPlayer, cardOptions[i])
+               
+               await ctx.send(embed=self.game.showSelection(currentPlayer))
             except Exception as e:
                print(str(e))
 
@@ -173,7 +181,7 @@ class Play(commands.Cog):
          if ctx.message.author.id == self.player2.id and not self.game.finishedSelection(PLAYER_2):
             currentPlayer = PLAYER_2
          
-         if currentPlayer > 0:
+         if currentPlayer >= 0:
             if self.game.completedSideDeck(currentPlayer):
                self.game.finishSelection(currentPlayer)
                await ctx.message.channel.send(embed=self.game.showPlayableCards(currentPlayer))
@@ -183,14 +191,14 @@ class Play(commands.Cog):
             if self.game.finishedSelection(PLAYER_1) and self.game.finishedSelection(PLAYER_2):
                self.finishedSelection = True
                
-               await self.lastChannel.send(f"{self.player1.mention}, please type !heads or !tails for the coin toss to see who will start the first round.")
+               await self.lastChannel.send(f"{self.player1.mention}, please type **p.heads** or **p.tails** for the coin toss to see who will start the first round.")
 
    @commands.command()
    async def heads (self, ctx):
       if ctx.message.author.id == self.player1.id and playChannel(ctx.message.guild.id, ctx.message.channel.id):
          await ctx.send(self.game.coinToss("heads"))
          self.game.setCard(randint(1,10))
-         await ctx.send(embed=self.game.displayBoard())
+         await ctx.send(embed=self.game.displayBoard(), files=self.game.getImages())
       else:
          await ctx.send(f"{ctx.message.author.mention}, you can't play for {self.player1.mention}.")
 
@@ -199,7 +207,7 @@ class Play(commands.Cog):
       if ctx.message.author.id == self.player1.id and playChannel(ctx.message.guild.id, ctx.message.channel.id):
          await ctx.send(self.game.coinToss("tails"))
          self.game.setCard(randint(1,10))
-         await ctx.send(embed=self.game.displayBoard())
+         await ctx.send(embed=self.game.displayBoard(), files=self.game.getImages())
       else:
          await ctx.send(f"{ctx.message.author.mention}, you can't play for {self.player1.mention}.")
 
@@ -208,8 +216,24 @@ class Play(commands.Cog):
       if ctx.message.author.id == self.game.getCurrentPlayerID():
          self.cardPlayed = False
          self.game.endTurn()
-         if await endTurn(self, ctx):
-            await ctx.send(embed=self.game.displayBoard())
+         
+         if self.game.roundOver():
+            await endRound(self, ctx)
+            if self.game.gameOver():
+               await endGame(self, ctx)
+         else:
+            self.game.setCard(randint(1,10))
+            if self.game.turnOver():
+               self.game.stand()
+               if self.game.roundOver():
+                  await endRound(self, ctx)
+                  if self.game.gameOver():
+                     await endGame(self, ctx)
+               else:
+                  self.game.setCard(randint(1,10))
+                  await ctx.send(embed=self.game.displayBoard(), files=self.game.getImages())
+            else:
+               await ctx.send(embed=self.game.displayBoard(), files=self.game.getImages())
       else:
          await ctx.send(f"{ctx.message.author.mention}, you can't play for {self.game.mentionCurrentPlayer()}.")
 
@@ -218,8 +242,20 @@ class Play(commands.Cog):
       if ctx.message.author.id == self.game.getCurrentPlayerID():
          self.cardPlayed = False
          self.game.stand()
-         if await endTurn(self, ctx):
-            await ctx.send(embed=self.game.displayBoard())
+
+         if self.game.roundOver():
+            await endRound(self, ctx)
+            if self.game.gameOver():
+               await endGame(self, ctx)
+         else:
+            self.game.setCard(randint(1,10))
+            if self.game.turnOver():
+               self.game.stand()
+               await endRound(self, ctx)
+               if self.game.gameOver():
+                  await endGame(self, ctx)
+            else:
+               await ctx.send(embed=self.game.displayBoard(), files=self.game.getImages())
       else:
          await ctx.send(f"{ctx.message.author.mention}, you can't play for {self.game.mentionCurrentPlayer()}.")
 
@@ -234,61 +270,72 @@ class Play(commands.Cog):
          else:
             try:
                if card == "T":
-                  self.game.setCard(int(f"{sign}1"), True, card)
+                  self.game.setCard(int(f"{sign}1"), card)
                elif card == "D" or card == "F2/4" or card == "F3/6":
-                  self.game.setCard(0, True, card)
+                  self.game.setCard(0, card)
                else:
                   if sign is None:
-                     self.game.setCard(int(card), True, card)
+                     self.game.setCard(int(card), card)
                   else:
                      value = [int(i) for i in card if i.isdigit()][0]
-                     self.game.setCard(int(f"{sign}{value}"), True, card)
+                     self.game.setCard(int(f"{sign}{value}"), card)
 
                self.cardPlayed = True
-               user = self.client.get_user(self.game.players[self.game.currentPlayer].id)
                if self.game.hasCardsLeft(self.game.currentPlayer):
+                  user = self.client.get_user(self.game.players[self.game.currentPlayer].id)
                   await user.send(embed=self.game.showCurrentCards(self.game.currentPlayer))
+                  
+               if self.game.turnOver():
+                  self.game.stand()
+                  self.cardPlayed = False
+               if self.game.roundOver():
+                  await endRound(self, ctx)
+                  if self.game.gameOver():
+                     await endGame(self, ctx)
+               else:
+                  await ctx.send(embed=self.game.displayBoard(), files=self.game.getImages())
 
             except Exception as e:
                print(str(e))
                await ctx.send("There was a mistake in your play input. Please try again using the proper formatting.")
-
-            if await endTurn(self, ctx):
-               await ctx.send(embed=self.game.displayBoard())
       else:
          await ctx.send(f"{ctx.message.author.mention}, you can't play for {self.game.mentionCurrentPlayer()}.")
 
    @tasks.loop(seconds=15)
    async def timer (self):
-      if self.game is not None and datetime.utcnow() - timedelta(minutes=3) > self.challengeTime:
-         self.game = None
+      if self.challenged and datetime.utcnow() - timedelta(minutes=3) > self.challengeTime:
          self.player1 = None
          self.player2 = None
-         await self.lastChannel.send("Challenge has expied.")
+         self.challenged = False
+         await self.lastChannel.send("Challenge has expired.")
 
-async def endTurn (self, ctx):
-   if self.game.turnOver():
-      self.game.stand()
-      self.cardPlayed = False
-   if self.game.roundOver():
-      self.game.findRoundWinner()
-      if self.game.roundWinner != TIED:
-         await ctx.send(content=self.game.declareRoundWinner(), embed=self.game.displayBoard())
-         if self.game.gameOver():
-            await ctx.send(self.game.declareGameWinner())
-            self.game = None
-            return False
-      else:
-         await ctx.send(content="Round tied!", embed=self.game.displayBoard())
-      await ctx.send(self.game.nextRound())
-   elif not self.cardPlayed:
-      self.game.setCard(randint(1,10))
-      if self.game.turnOver():
-         self.game.stand()
-         self.cardPlayed = False
-         await ctx.send(embed=self.game.displayBoard())
+async def endRound (self, ctx):
+   self.game.findRoundWinner()
+   if self.game.roundWinner != TIED:
+      await ctx.send(content=self.game.declareRoundWinner(), embed=self.game.displayBoard(), files=self.game.getImages())
+   else:
+      await ctx.send(content="Round tied!", embed=self.game.displayBoard(), files=self.game.getImages())
 
-   return True
+async def endGame (self, ctx):
+   db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+   cursor = db.cursor()
+
+   cursor.execute(f"SELECT play_channel, separate_channel FROM server_info WHERE server_id = {ctx.message.guild.id}")
+   results = cursor.fetchone()
+   channel = results[0]
+   separate = results[1] == 1
+
+   if separate:
+      self.lastChannel.delete()
+      await channel.send(self.game.declareGameWinner())
+   else:
+      await ctx.send(self.game.declareGameWinner())
+
+   self.lastChannel = None
+   self.game = None
+   self.player1 = None
+   self.player2 = None
+   self.finishedSelection = False
 
 def playChannel (serverid, channelid):
    try:

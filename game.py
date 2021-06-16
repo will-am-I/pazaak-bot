@@ -14,12 +14,12 @@ TIED = -1
 
 TURN_COORDS = [(26, 17), (489, 17)]
 POINT_COORDS = [[(103, 49), (123, 49), (142, 49)], [(385, 49), (405, 49), (424, 49)]]
-TOTAL_COORDS = [[(222, 63), (220, 63), (219, 63)], [(326, 63), (324, 63), (323, 63)]]
+TOTAL_COORDS = [[(222, 63), (219, 63), (220, 63)], [(326, 63), (323, 63), (324, 63)]]
 TOTAL_COVER_COORDS = [(203, 49), (305, 49)]
 TOTAL_CROP_COORDS = [(203, 49, 240, 66), (305, 49, 342, 66)]
 FIELD_COORDS = [[(74, 83), (128, 83), (183, 83), (74, 151), (128, 151), (183, 151), (74, 219), (128, 219), (183, 219)], [(314, 83), (368, 83), (422, 83), (314, 151), (368, 151), (422, 151), (314, 219), (368, 219), (422, 219)]]
 DECK_COORDS = [[(36, 306), (90, 306), (144, 306), (198, 306)], [(298, 306), (352, 306), (406, 306), (460, 306)]]
-DECK_CROP_COORDS = [[(36, 306, 85, 369), (90, 306, 139, 369), (144, 306, 193, 369), (198, 306, 247, 369)], [(298, 306, 347, 369), (352, 306, 401, 369), (406, 306, 455, 369), (460, 306, 409, 369)]]
+DECK_CROP_COORDS = [[(36, 306, 85, 369), (90, 306, 139, 369), (144, 306, 193, 369), (198, 306, 247, 369)], [(298, 306, 347, 369), (352, 306, 401, 369), (406, 306, 455, 369), (460, 306, 509, 369)]]
 CARD_SIZE = (49, 63)
 
 class Game:
@@ -28,13 +28,12 @@ class Game:
       self.bet = bet
       self.round = 1
       self.currentPlayer = -1
-      self.roundWinner = -1
+      self.roundWinner = None
       self.roundStarter = -1
       self.playedCards = []
       self.gameWinner = -1
       self.gameLoser = -1
       self.playedCardImage = None
-      self.placedCardImage = None
 
       base = Image.open("./images/board.png")
       covered = Image.open("./images/covered.png")
@@ -57,7 +56,7 @@ class Game:
       return self.players[self.currentPlayer].id
 
    def mentionCurrentPlayer (self):
-      return self.players[self.currentPlayer].id
+      return self.players[self.currentPlayer].mention
 
    def showCardOptions (self, player):
       db = MySQLdb.connect("localhost", config['database_user'], config['database_pass'], config['database_schema'])
@@ -90,14 +89,14 @@ class Game:
       return selected
 
    def ownedAmount (self, player, card):
-      dbcard = next(item['dbname'] for item in cards['cards'] if item['code'] == card)
+      dbcard = next(item['db_name'] for item in cards['cards'] if item['code'] == card)
       amountOwned = 0
 
-      db = MySQLdb.connect("localhost", config['database_user'], config['database_pass'], config['database_schema'])
+      db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
       cursor = db.cursor()
 
       try:
-         cursor.execute(f"SELECT {dbcard} FROM pazaak WHERE discordid = {self.players[player].id}")
+         cursor.execute(f"SELECT {dbcard} FROM pazaak_inventory WHERE discordid = {self.players[player].id}")
          amountOwned = cursor.fetchone()[0]
       except Exception as e:
          print(str(e))
@@ -177,80 +176,17 @@ class Game:
       result = sides[randint(0,1)]
 
       if side[0] == result[0]:
-         self.roundStarter = self.currentPlayer = PLAYER_1
-      else:
          self.roundStarter = self.currentPlayer = PLAYER_2
+      else:
+         self.roundStarter = self.currentPlayer = PLAYER_1
 
       return f"The coin landed on {result}. {self.players[self.roundStarter].mention} will start the game."
 
    def getImages (self):
-      return [discord.File(f"./images/{self.cardImage}", filename=self.cardImage), discord.File("./images/play.png", filename="play.png")]
-
-   def displayBoard (self):
-      play = Image.open("./images/play.png")
-      board = Image.open("./images/board.png")
-      draw = ImageDraw.Draw(play)
-      font = ImageFont.truetype("./BankGothic Regular.ttf", size=20)
-
-      for i in range(2):
-         crop = board.crop(TOTAL_CROP_COORDS[i])
-         play.paste(crop, TOTAL_COVER_COORDS[i])
-
-         total = self.players[i].total()
-         draw.text(TOTAL_COORDS[i][int(total / 10)], str(total), (255, 255, 255), anchor="ms", font=font)
-
-      play.save("./images/play.png")
-
-      embed = discord.Embed(title="Current Board", colour=discord.Colour(0x4e7e8a), description=f"{self.players[self.currentPlayer].name}'s turn.")
-      embed.set_thumbnail(url=f"attachment://{self.playedCardImage}")
-      embed.set_image(url="attachment://play.png")
-      embed.set_footer(text="Use **p.help 1** for help with how to play the game.")
-      return embed
-
-   def endTurn (self):
-      play = Image.open("./images/play.png")
-
-      if self.currentPlayer == PLAYER_1 and not self.players[PLAYER_2].stood:
-         self.currentPlayer = PLAYER_2
-         turn = Image.open("./images/turn.png")
-         notTurn = Image.open("./images/not_turn.png")
-         play.paste(turn, TURN_COORDS[PLAYER_2], turn)
-         play.paste(notTurn, TURN_COORDS[PLAYER_1], notTurn)
-
-      elif self.currentPlayer == PLAYER_2 and not self.players[PLAYER_1].stood:
-         self.currentPlayer = PLAYER_1
-         turn = Image.open("./images/turn.png")
-         notTurn = Image.open("./images/not_turn.png")
-         play.paste(turn, TURN_COORDS[PLAYER_1], turn)
-         play.paste(notTurn, TURN_COORDS[PLAYER_2], notTurn)
-
-      play.save("./images/png")
-
-   def stand (self):
-      play = Image.open("./images/play.png")
-
-      if self.currentPlayer == PLAYER_1:
-         self.players[PLAYER_1].stand()
-         if not self.players[PLAYER_2].stood:
-            self.currentPlayer = PLAYER_2
-            turn = Image.open("./images/turn.png")
-            notTurn = Image.open("./images/not_turn.png")
-            play.paste(turn, TURN_COORDS[PLAYER_2], turn)
-            play.paste(notTurn, TURN_COORDS[PLAYER_1], notTurn)
-
-      elif self.currentPlayer == PLAYER_2:
-         self.players[PLAYER_2].stand()
-         if not self.players[PLAYER_1].stood:
-            self.currentPlayer = PLAYER_1
-            turn = Image.open("./images/turn.png")
-            notTurn = Image.open("./images/not_turn.png")
-            play.paste(turn, TURN_COORDS[PLAYER_1], turn)
-            play.paste(notTurn, TURN_COORDS[PLAYER_2], notTurn)
-
-      play.save("./images/png")
-
-   def canPlayCard (self, card):
-      return card in self.players[self.currentPlayer].sideDeck
+      if self.roundWinner is None:
+         return [discord.File(f"./images/{self.playedCardImage}", filename=self.playedCardImage), discord.File("./images/play.png", filename="play.png")]
+      else:
+         return [discord.File("./images/play.png", filename="play.png")]
 
    def setCard (self, value, card=None):
       if card is not None:
@@ -294,16 +230,20 @@ class Game:
                      newCard = Image.open(f"./images/dc{setCard}.png")
                   else:
                      newCard = Image.open(f"./images/f_p_{setCardID}.png")
+                     
+                  newCard = newCard.resize(CARD_SIZE)
                   play.paste(newCard, FIELD_COORDS[self.currentPlayer][i], newCard)
 
                if setCard in [-3, -6, -2, -4]:
                   newCard = Image.open(f"./images/f_m_{setCardID}.png")
+                  newCard = newCard.resize(CARD_SIZE)
                   play.paste(newCard, FIELD_COORDS[self.currentPlayer][i], newCard)
                   
          elif 'D' in card:
             self.playedCardImage = f"dc.png"
             newCard = Image.open(f"./images/dc{value}.png")
-            play.paste(newCard, FIELD_COORDS[self.currentPlayer][len(self.players[self.currentPlayer].fieldCards)-1], newCard)
+            newCard = newCard.resize(CARD_SIZE)
+            play.paste(newCard, FIELD_COORDS[self.currentPlayer][len(self.players[self.currentPlayer].fieldCards)], newCard)
 
          elif 'T' in card:
             if value > 0:
@@ -312,7 +252,9 @@ class Game:
             else:
                self.playedCardImage = f"m_tc.png"
                newCard = Image.open(f"./images/m_tc.png")
-            play.paste(newCard, FIELD_COORDS[self.currentPlayer][len(self.players[self.currentPlayer].fieldCards)-1], newCard)
+               
+            newCard = newCard.resize(CARD_SIZE)
+            play.paste(newCard, FIELD_COORDS[self.currentPlayer][len(self.players[self.currentPlayer].fieldCards)], newCard)
 
          elif '+/-' in card:
             if value > 0:
@@ -321,7 +263,9 @@ class Game:
             else:
                self.playedCardImage = f"m_pm{abs(value)}.png"
                newCard = Image.open(f"./images/m_pm{abs(value)}.png")
-            play.paste(newCard, FIELD_COORDS[self.currentPlayer][len(self.players[self.currentPlayer].fieldCards)-1], newCard)
+               
+            newCard = newCard.resize(CARD_SIZE)
+            play.paste(newCard, FIELD_COORDS[self.currentPlayer][len(self.players[self.currentPlayer].fieldCards)], newCard)
 
          else:
             if value > 0:
@@ -330,18 +274,73 @@ class Game:
             else:
                self.playedCardImage = f"m{abs(value)}.png"
                newCard = Image.open(f"./images/m{abs(value)}.png")
-            play.paste(newCard, FIELD_COORDS[self.currentPlayer][len(self.players[self.currentPlayer].fieldCards)-1], newCard)
+            
+            newCard = newCard.resize(CARD_SIZE)
+            play.paste(newCard, FIELD_COORDS[self.currentPlayer][len(self.players[self.currentPlayer].fieldCards)], newCard)
 
       else:
          self.playedCardImage = f"{value}.png"
          newCard = Image.open(f"./images/{value}.png")
-         newCard.resize(CARD_SIZE)
-         play.paste(newCard, FIELD_COORDS[self.currentPlayer][len(self.players[self.currentPlayer].fieldCards)-1], newCard)
+         newCard = newCard.resize(CARD_SIZE)
+         play.paste(newCard, FIELD_COORDS[self.currentPlayer][len(self.players[self.currentPlayer].fieldCards)], newCard)
       
       play.save("./images/play.png")
 
+   def displayBoard (self):
+      play = Image.open("./images/play.png")
+      board = Image.open("./images/board.png")
+      draw = ImageDraw.Draw(play)
+      font = ImageFont.truetype("./BankGothic Regular.ttf", size=20)
+      turn = Image.open("./images/turn.png")
+      notTurn = Image.open("./images/not_turn.png")
+
+      if self.currentPlayer == PLAYER_1:
+         play.paste(turn, TURN_COORDS[PLAYER_1], turn)
+         play.paste(notTurn, TURN_COORDS[PLAYER_2], notTurn)
+      if self.currentPlayer == PLAYER_2:
+         play.paste(turn, TURN_COORDS[PLAYER_2], turn)
+         play.paste(notTurn, TURN_COORDS[PLAYER_1], notTurn)
+
+      for i in range(2):
+         crop = board.crop(TOTAL_CROP_COORDS[i])
+         play.paste(crop, TOTAL_COVER_COORDS[i])
+
+         total = self.players[i].total()
+         draw.text(TOTAL_COORDS[i][int(total / 10)], str(total), (255, 255, 255), anchor="ms", font=font)
+
+      play.save("./images/play.png")
+
+      if self.roundWinner is not None:
+         embed = discord.Embed(title="Current Board", colour=discord.Colour(0x4e7e8a))
+      else:
+         embed = discord.Embed(title="Current Board", colour=discord.Colour(0x4e7e8a), description=f"{self.players[self.currentPlayer].name}'s turn.")
+         embed.set_thumbnail(url=f"attachment://{self.playedCardImage}")
+
+      embed.set_image(url="attachment://play.png")
+      embed.set_footer(text="Use **p.help 1** for help with how to play the game.")
+      return embed
+
+   def endTurn (self):
+      if self.currentPlayer == PLAYER_1 and not self.players[PLAYER_2].stood:
+         self.currentPlayer = PLAYER_2
+      elif self.currentPlayer == PLAYER_2 and not self.players[PLAYER_1].stood:
+         self.currentPlayer = PLAYER_1
+
+   def stand (self):
+      if self.currentPlayer == PLAYER_1:
+         self.players[PLAYER_1].stand()
+         if not self.players[PLAYER_2].stood:
+            self.currentPlayer = PLAYER_2
+      elif self.currentPlayer == PLAYER_2:
+         self.players[PLAYER_2].stand()
+         if not self.players[PLAYER_1].stood:
+            self.currentPlayer = PLAYER_1
+
+   def canPlayCard (self, card):
+      return card in self.players[self.currentPlayer].sideDeck
+
    def hasCardsLeft (self, player):
-      return len(self.players[player].sideDeck) == 0
+      return len(self.players[player].sideDeck) > 0
 
    def showCurrentCards (self, player):
       deck = ""
@@ -393,7 +392,7 @@ class Game:
          self.roundWinner = TIED
 
    def declareRoundWinner (self):
-      self.players[self.roundWinner].wonRound()
+      self.players[self.roundWinner].won()
 
       play = Image.open("./images/play.png")
       point = Image.open("./images/point.png")
@@ -406,25 +405,23 @@ class Game:
    def nextRound (self):
       self.round += 1
       self.playedCards = []
+
       if self.roundWinner != TIED:
          self.roundStarter = self.currentPlayer = self.roundWinner
       else:
          self.currentPlayer = self.roundStarter
-      self.players[PLAYER_1].clearBoard()
-      self.players[PLAYER_2].clearBoard()
-      self.setCard(randint(1,10))
 
       play = Image.open("./images/play.png")
-      turn = Image.open("./images/turn.png")
-      notTurn = Image.open("./images/not_turn.png")
-      board = Image.open("./image/boards.png")
+      board = Image.open("./images/board.png")
 
-      crop = board.crop((0, 78, 0, 287))
+      crop = board.crop((0, 78, 547, 287))
       play.paste(crop, (0, 78))
-      play.paste(notTurn, TURN_COORDS[0], notTurn)
-      play.paste(notTurn, TURN_COORDS[1], notTurn)
-      play.paste(turn, TURN_COORDS[self.currentPlayer], turn)
       play.save("./images/play.png")
+
+      self.players[PLAYER_1].clear()
+      self.players[PLAYER_2].clear()
+      self.setCard(randint(1,10))
+      self.roundWinner = None
 
       return f"{self.players[self.currentPlayer].mention} will start the next round."
 
@@ -454,4 +451,8 @@ class Game:
          print(str(e))
       db.close()
 
-      return f"{self.players[self.gameWinner].mention} has won the game! {self.bet} coins have been awarded from {self.players[self.gameLoser].mention}!"
+      statement = f"{self.players[self.gameWinner].mention} has won the game!"
+      if self.bet > 0:
+         statement += f" {self.bet} coins have been awarded from {self.players[self.gameLoser].mention}!"
+
+      return statement

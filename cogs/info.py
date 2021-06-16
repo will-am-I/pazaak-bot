@@ -13,86 +13,88 @@ class Info(commands.Cog):
 
    @commands.command()
    async def rank (self, ctx):
-      db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
-      cursor = db.cursor()
+      if generalChannel(ctx.message.guild.id, ctx.message.channel.id):
+         db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+         cursor = db.cursor()
 
-      try:
-         cursor.execute(f"SELECT wins + losses AS games FROM pazaak_balance WHERE discordid = {ctx.message.author.id}")
-         games = cursor.fetchone()[0]
+         try:
+            cursor.execute(f"SELECT wins + losses AS games FROM pazaak_balance WHERE discordid = {ctx.message.author.id}")
+            games = cursor.fetchone()[0]
 
-         if games > 0:
-            cursor.execute("SELECT discordid, wins, losses FROM pazaak_balance ORDER BY wins DESC, losses ASC")
-            results = cursor.fetchall()
-            
-            i = 0
-            for result in results:
-               i += 1
-               if result[0] == ctx.message.author.id:
-                  place = str(i)
-                  if place.endswith("1") and not place.endswith("11"):
-                     place += "st"
-                  elif place.endswith("2") and not place.endswith("12"):
-                     place += "nd"
-                  elif place.endswith("3") and not place.endswith("13"):
-                     place += "rd"
-                  else:
-                     place += "th"
+            if games > 0:
+               cursor.execute("SELECT discordid, wins, losses FROM pazaak_balance ORDER BY wins DESC, losses ASC")
+               results = cursor.fetchall()
+               
+               i = 0
+               for result in results:
+                  i += 1
+                  if result[0] == ctx.message.author.id:
+                     place = str(i)
+                     if place.endswith("1") and not place.endswith("11"):
+                        place += "st"
+                     elif place.endswith("2") and not place.endswith("12"):
+                        place += "nd"
+                     elif place.endswith("3") and not place.endswith("13"):
+                        place += "rd"
+                     else:
+                        place += "th"
 
-                  embed = discord.Embed(title=f"{ctx.message.author.name}'s Pazaak Rank", colour=discord.Colour(0x4e7e8a), description=f"You are {place} place on the leaderboard.")
-                  embed.set_thumbnail(url=ctx.message.author.avatar_url)
-                  embed.add_field(name="Wins", value=result[1])
-                  embed.add_field(name="Losses", value=result[2])
-                  await ctx.send(embed=embed)
-         else:
-            cursor.execute(f"SELECT play_channel FROM server_info WHERE server_id = {ctx.message.guild.id}")
-            channel = cursor.fetchone()[0]
-            await ctx.send(f"{ctx.message.author.mention}, you currently don't have a pazaak rank since you have never played a game. Go to {self.client.get_channel(channel).mention} and start your first game!")
-      except Exception as e:
-         print(str(e))
-      
-      db.close()
+                     embed = discord.Embed(title=f"{ctx.message.author.name}'s Pazaak Rank", colour=discord.Colour(0x4e7e8a), description=f"You are {place} place on the leaderboard.")
+                     embed.set_thumbnail(url=ctx.message.author.avatar_url)
+                     embed.add_field(name="Wins", value=result[1])
+                     embed.add_field(name="Losses", value=result[2])
+                     await ctx.send(embed=embed)
+            else:
+               cursor.execute(f"SELECT play_channel FROM server_info WHERE server_id = {ctx.message.guild.id}")
+               channel = cursor.fetchone()[0]
+               await ctx.send(f"{ctx.message.author.mention}, you currently don't have a pazaak rank since you have never played a game. Go to {self.client.get_channel(channel).mention} and start your first game!")
+         except Exception as e:
+            print(str(e))
+         
+         db.close()
 
    @commands.command()
    async def top (self, ctx, all=None):
-      db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
-      cursor = db.cursor()
+      if generalChannel(ctx.message.guild.id, ctx.message.channel.id):
+         db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+         cursor = db.cursor()
 
-      try:
-         if all is None:
-            members = [member.id for member in ctx.message.guild.fetch_members()]
-            members = ', '.join(members)
+         try:
+            if all is None:
+               members = [member.id for member in ctx.message.guild.fetch_members()]
+               members = ', '.join(members)
 
-            cursor.execute(f"SELECT discordid, wins, losses FROM pazaak_balance WHERE discordid IN ({members}) ORDER BY wins DESC, losses ASC")
-            if cursor.rowcount < 10:
-               rows = cursor.rowcount
-            else:
-               rows = 10
-            results = cursor.fetchall()
+               cursor.execute(f"SELECT discordid, wins, losses FROM pazaak_balance WHERE discordid IN ({members}) ORDER BY wins DESC, losses ASC")
+               if cursor.rowcount < 10:
+                  rows = cursor.rowcount
+               else:
+                  rows = 10
+               results = cursor.fetchall()
 
-            leaderboard = ""
-            for i in range(rows):
-               user = self.client.fetch_user(results[i][0])
-               leaderboard += f"**{i+1}.**\t{user.name}\t{results[i][1]}/{results[i][2]}\n"
+               leaderboard = ""
+               for i in range(rows):
+                  user = self.client.fetch_user(results[i][0])
+                  leaderboard += f"**{i+1}.**\t{user.name}\t{results[i][1]}/{results[i][2]}\n"
 
-            await ctx.send(embed=discord.Embed(title=f"{ctx.message.guild.name}'s Pazaak Leaderboard", colour=discord.Colour(0x4e7e8a), description=leaderboard))
-         if all == "all":
-            cursor.execute("SELECT discordid, wins, losses FROM pazaak_balance ORDER BY wins DESC, losses ASC")
-            if cursor.rowcount < 10:
-               rows = cursor.rowcount
-            else:
-               rows = 10
-            results = cursor.fetchall()
+               await ctx.send(embed=discord.Embed(title=f"{ctx.message.guild.name}'s Pazaak Leaderboard", colour=discord.Colour(0x4e7e8a), description=leaderboard))
+            if all == "all":
+               cursor.execute("SELECT discordid, wins, losses FROM pazaak_balance ORDER BY wins DESC, losses ASC")
+               if cursor.rowcount < 10:
+                  rows = cursor.rowcount
+               else:
+                  rows = 10
+               results = cursor.fetchall()
 
-            leaderboard = ""
-            for i in range(rows):
-               user = self.client.fetch_user(results[i][0])
-               leaderboard += f"**{i+1}.**\t{user.name}\t{results[i][1]}/{results[i][2]}\n"
+               leaderboard = ""
+               for i in range(rows):
+                  user = self.client.fetch_user(results[i][0])
+                  leaderboard += f"**{i+1}.**\t{user.name}\t{results[i][1]}/{results[i][2]}\n"
 
-            await ctx.send(embed=discord.Embed(title="Pazaak Leaderboard", colour=discord.Colour(0x4e7e8a), description=leaderboard))
-      except Exception as e:
-         print(str(e))
+               await ctx.send(embed=discord.Embed(title="Pazaak Leaderboard", colour=discord.Colour(0x4e7e8a), description=leaderboard))
+         except Exception as e:
+            print(str(e))
 
-      db.close()
+         db.close()
 
    @commands.command()
    async def sidedeck (self, ctx):
@@ -114,9 +116,24 @@ class Info(commands.Cog):
          user = self.client.get_user(ctx.message.author.id)
          await user.send(embed=embed)
       else:
-         await ctx.send("You currently don't have a pazaak deck. Play your first game of pazaak to obtain a deck.")
+         await ctx.send(f"{ctx.message.author.mention}, you currently don't have a pazaak deck. Play your first game of pazaak to obtain a deck.")
       
       db.close()
       
+def generalChannel (serverid, channelid):
+   try:
+      db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+      cursor = db.cursor()
+
+      cursor.execute(f"SELECT general_channel FROM server_info WHERE server_id = {serverid}")
+      generalChannel = cursor.fetchone()[0]
+
+      db.close()
+      return generalChannel is None or generalChannel == channelid
+
+   except Exception as e:
+      print(str(e))
+      return False
+
 def setup (client):
    client.add_cog(Info(client))

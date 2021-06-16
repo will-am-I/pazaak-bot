@@ -64,7 +64,7 @@ class Help(commands.Cog):
          elif command == "duel":
             embed = discord.Embed(title="p.pazaak <member> [wager]", colour=discord.Colour(0x4e7e8a), description=f"This command is used to challenge another member to pazaak.\nThe challenge will expire after 3 minutes.")
             embed.add_field(name="<member>", value="Tag another server member using @.", inline=False)
-            embed.add_field(name="[wager]", value="Enter a numerical wager amount.\nThe amount must be more than 50 and both players must have the amount on hand.", inline=False)
+            embed.add_field(name="[wager]", value="Enter a numerical wager amount.\nBoth players must have the amount to be able to duel.\nIf no wager is given, the game is played for free with no winnings.", inline=False)
             embed.set_footer(text="Arguments with '<>' are required; arguments with '[]' are optional.")
             await ctx.send(embed=embed)
          elif command == "accept":

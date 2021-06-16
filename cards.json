@@ -18,7 +18,7 @@
       },
       {
          "code": "+4",
-         "db_name": "p3",
+         "db_name": "p4",
          "cost": 50
       },
       {
@@ -48,7 +48,7 @@
       },
       {
          "code": "-4",
-         "db_name": "m3",
+         "db_name": "m4",
          "cost": 50
       },
       {
@@ -78,7 +78,7 @@
       },
       {
          "code": "+/-4",
-         "db_name": "pm3",
+         "db_name": "pm4",
          "cost": 200
       },
       {
