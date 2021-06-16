@@ -1,5 +1,5 @@
 import discord, json, MySQLdb
-from discord.ext import commands, tasks
+from discord.ext import commands
 from datetime import datetime, timedelta
 from random import randint
 

@@ -73,6 +73,7 @@ class Game:
                embed.add_field(name=f"[{cards['cards'][i]['code']}] {cards['cards'][i]['name']}", value=str(cardAmounts[i]), inline=False)
             else:
                embed.add_field(name=f"[{cards['cards'][i]['code']}]", value=str(cardAmounts[i]), inline=True)
+         embed.set_footer(text="Use **p.help sidedeck** if you need help with how to choose your side deck or **p.sidedeck** to view your inventory again.")
       except Exception as e:
          print(str(e))
       
@@ -105,11 +106,11 @@ class Game:
 
       return amountOwned
 
-   def makeSelection (self, player, card, action):
-      if action == "add":
-         self.players[player].add(card)
-      if action == "remove":
-         self.players[player].remove(card)
+   def addSelection (self, player, card):
+      self.players[player].add(card)
+   
+   def removeSelection (self, player, card):
+      self.players[player].remove(card)
          
    def showSelection (self, player):
       selectionCards = [i for n, i in enumerate(self.players[player].selection) if i not in self.players[player].selection[:n]]
@@ -120,7 +121,9 @@ class Game:
          deck += f"\n{selectionCount[card]} [{card}]\n"
       deck += f"\nTotal cards: {len(self.players[player].selection)}"
 
-      return discord.Embed(title="Your current selection:", colour=discord.Colour(0x4e7e8a), description=deck)
+      embed = discord.Embed(title="Your current selection:", colour=discord.Colour(0x4e7e8a), description=deck)
+      embed.set_footer(text="Use **p.help 2** if you need help with how to choose your side deck or **p.sidedeck** to view your inventory again.")
+      return embed
 
    def completedSideDeck (self, player):
       return len(self.players[player].selection) == 10
@@ -201,6 +204,7 @@ class Game:
       embed = discord.Embed(title="Current Board", colour=discord.Colour(0x4e7e8a), description=f"{self.players[self.currentPlayer].name}'s turn.")
       embed.set_thumbnail(url=f"attachment://{self.playedCardImage}")
       embed.set_image(url="attachment://play.png")
+      embed.set_footer(text="Use **p.help 1** for help with how to play the game.")
       return embed
 
    def endTurn (self):

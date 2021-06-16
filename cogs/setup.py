@@ -1,5 +1,5 @@
 import discord, json, MySQLdb
-from discord.ext import commands, tasks
+from discord.ext import commands
 
 with open('../config.json') as data:
    config = json.load(data)
@@ -58,6 +58,22 @@ class Setup(commands.Cog):
 
       try:
          cursor.execute(f"UPDATE server_info SET max_credits = {amount} WHERE server_id = {ctx.message.guild.id}")
+         db.commit()
+      except Exception as e:
+         db.rollback()
+         print(str(e))
+
+      db.close()
+
+   @commands.command()
+   async def separate (self, ctx, action):
+      value = 0 if action == "disable" else 1
+
+      db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+      cursor = db.cursor()
+
+      try:
+         cursor.execute(f"UPDATE server_info SET separate_channel = {value} WHERE server_id = {ctx.message.guild.id}")
          db.commit()
       except Exception as e:
          db.rollback()

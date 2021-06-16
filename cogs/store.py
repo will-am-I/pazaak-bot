@@ -1,5 +1,5 @@
 import discord, json, MySQLdb
-from discord.ext import commands, tasks
+from discord.ext import commands
 
 with open('../config.json') as data:
    config = json.load(data)

@@ -1,5 +1,4 @@
-import discord, json, MySQLdb
-from random import randint
+import json, MySQLdb
 
 with open('./config.json') as data:
    config = json.load(data)

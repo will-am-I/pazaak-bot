@@ -1,4 +1,4 @@
-import discord, MySQLdb, os, json
+import MySQLdb, os, json
 from discord.ext import commands
 
 client = commands.Bot(command_prefix = 'p.')
