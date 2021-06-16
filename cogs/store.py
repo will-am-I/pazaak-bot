@@ -19,7 +19,7 @@ class Store(commands.Cog):
       else:
          endAt = startAt + 7
       
-      description = "Use p.buy <card> to purchase a card."
+      description = "Use **p.buy <card>** to purchase a card."
       if page == 4:
          description += "\nOnly one of each of these cards per person."
 
