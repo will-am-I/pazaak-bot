@@ -16,9 +16,9 @@ class Store(commands.Cog):
       if storeChannel(ctx.message.guild.id, ctx.message.channel.id):
          startAt = ((page - 1) * 6)
          if page == 4:
-            endAt = startAt + 5
+            endAt = startAt + 4
          else:
-            endAt = startAt + 7
+            endAt = startAt + 6
          
          description = "Use **p.buy <card>** to purchase a card."
          if page == 4:

@@ -12,7 +12,8 @@ class Help(commands.Cog):
          embed = discord.Embed(title="Pazaak Commands", colour=discord.Colour(0x4e7e8a), description="Type **p.help <page>** to get command information in each section.")
          embed.add_field(name="1. Playing pazaak", value="These are commands used in pazaak play.", inline=False)
          embed.add_field(name="2. Side deck selection", value="These are commands used to select the side deck at the beginning of the game.", inline=False)
-         embed.add_field(name="3. Server settings", value="These are commands used to set text channels used for pazaak.", inline=False)
+         embed.add_field(name="3. General information", value="These are commands used to see player information for each member.", inline=False)
+         embed.add_field(name="4. Server settings", value="These are commands used to set text channels used for pazaak.", inline=False)
          await ctx.send(embed=embed)
       elif command.isdigit():
          if command == "1":
@@ -35,7 +36,15 @@ class Help(commands.Cog):
             embed.add_field(name="p.done", value="Use this to finish your side deck selection and receive your playable cards.", inline=False)
             embed.set_footer(text="Arguments with '<>' are required; arguments with '[]' are optional.")
             await ctx.send(embed=embed)
-         elif command == "3" and ctx.message.author.guild_permissions.administrator:
+         elif command == "3":
+            embed = discord.Embed(title="General information", colour=discord.Colour(0x4e7e8a), description="These are informational commands for each member.")
+            embed.add_field(name="**p.balance**", value="Use this to get your current credit balance.", inline=False)
+            embed.add_field(name="**p.inventory**", value="Use this to view your pazaak card inventory.", inline=False)
+            embed.add_field(name="**p.rank**", value="Use this to see your pazaak ranking.", inline=False)
+            embed.add_field(name="**p.top [all/global]**", value="Use this to see the current leaderboard.", inline=False)
+            embed.set_footer(text="Arguments with '<>' are required; arguments with '[]' are optional.")
+            await ctx.send(embed=embed)
+         elif command == "4" and ctx.message.author.guild_permissions.administrator:
             embed = discord.Embed(title="Server settings", colour=discord.Colour(0x4e7e8a), description="These are settings you may set up for ease of strain on text channels.\nType **p.help <command>** For more information on each one.")
             embed.add_field(name="**p.setup <type> <channel>**", value="Use this to determine which channels to play, send info, and/or use the store.\nOnly members with admin privileges can use this.", inline=False)
             embed.add_field(name="**p.unset <channel>**", value="Use this to allow members to use any channel to play, send info, and/or use the store.\nOnly members with admin privileges can use this.", inline=False)
@@ -84,6 +93,16 @@ class Help(commands.Cog):
             embed.add_field(name="<card>", value="Type the card you wish to play surrounded by '[]'.\n_(For example, a '+4' card would be typed as '[+4]' and a '-1' card would be typed as '[-1]'.)_\nOther specialty cards will just take the first letter.\n_(For example, a Double card would be typed as '[D]' and a Flip 2/4 card would be typed as '[F2/4]'.)_", inline=False)
             embed.add_field(name="[sign]", value="Type '+' (plus) or '-' (minus) to determine if the played card will be plus or minus.\nThis is only used for +/- cards and the Tiebreaker card.\n_(For example, a '+/- 2' card to be negative will be typed as '[+/-2] -' and a tiebreaker card to be positive will be typed as '[T] +'.)_", inline=False)
             embed.set_footer(text="Arguments with '<>' are required; arguments with '[]' are optional.")
+            await ctx.send(embed=embed)
+         elif command == "balance":
+            await ctx.send(embed=discord.Embed(title="p.balance", colour=discord.Colour(0x4e7e8a), description="This command is used to see your current credit balance.\nCredits are passively earned by typing in Discord channels."))
+         elif command == "inventory":
+            await ctx.send(embed=discord.Embed(title="p.inventory", colour=discord.Colour(0x4e7e8a), description="This command is used to see your current pazaak card inventory.\nAll players are given a starter deck when they play their first game.\nMore cards may be purchased through the store."))
+         elif command == "rank":
+            await ctx.send(embed=discord.Embed(title="p.rank", colour=discord.Colour(0x4e7e8a), description="This command is used to see your current ranking on the leaderboard.\nThere are separate leaderboards for each server, as well as a global leaderboard."))
+         elif command == "top":
+            embed = discord.Embed(title="p.top [all/global]", colour=discord.Colour(0x4e7e8a), description="This command is used to view the pazaak leaderboard.\nThis will display the current server's leaderboard.\nIt will only display the top 10 if there are more than 10 on the leaderboard.")
+            embed.add_field(name="[all/global]", value="Type either 'all' or 'global' to view the global leaderboard.")
             await ctx.send(embed=embed)
          elif command == "setup" and ctx.message.author.guild_permissions.administrator:
             embed = discord.Embed(title="p.setup <type> <channel>", colour=discord.Colour(0x4e7e8a), description="This command is used to set which channels to play, send info, and/or shop.\nBy default members may use any channel.")
