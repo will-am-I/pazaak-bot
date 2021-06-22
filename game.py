@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import discord, json, MySQLdb, collections, os
 from random import randint
 from player import Player
@@ -14,8 +15,7 @@ TIED = -1
 
 TURN_COORDS = [(26, 17), (489, 17)]
 POINT_COORDS = [[(103, 49), (123, 49), (142, 49)], [(385, 49), (405, 49), (424, 49)]]
-TOTAL_COORDS = [[(222, 63), (219, 63), (220, 63)], [(326, 63), (323, 63), (324, 63)]]
-TOTAL_COVER_COORDS = [(203, 49), (305, 49)]
+TOTAL_COORDS = [[(222, 63), (219, 63), (220, 63), (222, 63), (218, 63)], [(326, 63), (323, 63), (324, 63), (326, 63), (322, 63)]]
 TOTAL_CROP_COORDS = [(203, 49, 240, 66), (305, 49, 342, 66)]
 FIELD_COORDS = [[(74, 83), (128, 83), (183, 83), (74, 151), (128, 151), (183, 151), (74, 219), (128, 219), (183, 219)], [(314, 83), (368, 83), (422, 83), (314, 151), (368, 151), (422, 151), (314, 219), (368, 219), (422, 219)]]
 DECK_COORDS = [[(36, 306), (90, 306), (144, 306), (198, 306)], [(298, 306), (352, 306), (406, 306), (460, 306)]]
@@ -23,9 +23,17 @@ DECK_CROP_COORDS = [[(36, 306, 85, 369), (90, 306, 139, 369), (144, 306, 193, 36
 CARD_SIZE = (49, 63)
 
 class Game:
-   def __init__ (self, player1, player2, bet):
-      self.players = [Player(player1.id, player1.name, player1.mention), Player(player2.id, player2.name, player2.mention)]
+   def __init__ (self, gameid, player1, player2, bet, channel):
+      self.gameid = gameid
+      self.players = [Player(player1), Player(player2)]
+      self.mentionPlayer1 = player1.mention
       self.bet = bet
+      self.playChannel = channel
+      self.gameChannel = channel
+      self.cardPlayed = False
+      self.challenged = True
+      self.challengeTime = datetime.utcnow()
+      self.playTime = datetime.utcnow()
       self.round = 1
       self.currentPlayer = -1
       self.roundWinner = None
@@ -43,8 +51,8 @@ class Game:
       
       draw = ImageDraw.Draw(play)
       font = ImageFont.truetype("./BankGothic Regular.ttf", size=20)
-      draw.text((67, 34), player1.name, (96, 100, 0), anchor="ls", font=font)
-      draw.text((486, 34), player2.name, (96, 100, 0), anchor="rs", font=font)
+      draw.text((67, 34), player1.display_name, (91, 100, 42), anchor="ls", font=font)
+      draw.text((486, 34), player2.display_name, (91, 100, 42), anchor="rs", font=font)
 
       for i in range(2):
          for j in range(4):
@@ -52,30 +60,55 @@ class Game:
 
       play.save("./images/play.png")
 
-   def getCurrentPlayerID (self):
-      return self.players[self.currentPlayer].id
+   def getPlayerID (self, player=None):
+      if player is None:
+         return self.players[self.currentPlayer].id
+      else:
+         return self.players[player].id
 
-   def mentionCurrentPlayer (self):
-      return self.players[self.currentPlayer].mention
+   def getPlayerName (self, player=None):
+      if player is None:
+         return self.players[self.currentPlayer].name
+      else:
+         return self.players[player].name
+
+   def getCurrentPlayer (self, playerid):
+      if playerid == self.players[PLAYER_1].id:
+         return PLAYER_1
+      elif playerid == self.players[PLAYER_2].id:
+         return PLAYER_2
+      else:
+         return -1
+
+   def getPlayers (self):
+      return [player.id for player in self.players]
+
+   def isCurrentPlayer (self, playerid):
+      return playerid == self.players[self.currentPlayer].id
+
+   def setChannel (self, channel):
+      self.gameChannel = channel
+
+   def accept (self):
+      self.challenged = False
 
    def showCardOptions (self, player):
       db = MySQLdb.connect("localhost", config['database_user'], config['database_pass'], config['database_schema'])
       cursor = db.cursor()
 
+      embed = discord.Embed(title="Choose your side deck", colour=discord.Colour(0x4e7e8a), description="You may choose up to 10 cards, and 4 will be chosen at random to play.")
       try:
          cursor.execute(f"SELECT p1, p2, p3, p4, p5, p6, m1, m2, m3, m4, m5, m6, pm1, pm2, pm3, pm4, pm5, pm6, f24, f36, dc, tc FROM pazaak_inventory WHERE discordid = {self.players[player].id}")
          cardAmounts = cursor.fetchone()
 
-         embed = discord.Embed(title="Choose your side deck", colour=discord.Colour(0x4e7e8a), description="You may choose up to 10 cards, and 4 will be chosen at random to play.")
          for i in range(len(cards['cards'])):
-            if any(j in cards['cards'][i] for j in ['F', 'D', 'T']):
+            if any(j in cards['cards'][i]['code'] for j in ['F', 'D', 'T']):
                embed.add_field(name=f"[{cards['cards'][i]['code']}] {cards['cards'][i]['name']}", value=str(cardAmounts[i]), inline=False)
             else:
                embed.add_field(name=f"[{cards['cards'][i]['code']}]", value=str(cardAmounts[i]), inline=True)
-         embed.set_footer(text="Use **p.help sidedeck** if you need help with how to choose your side deck or **p.sidedeck** to view your inventory again.")
       except Exception as e:
          print(str(e))
-      
+      embed.set_footer(text="Use **p.help sidedeck** if you need help with how to choose your side deck or **p.sidedeck** to view your inventory again.")
       db.close()
 
       return embed
@@ -180,7 +213,10 @@ class Game:
       else:
          self.roundStarter = self.currentPlayer = PLAYER_1
 
-      return f"The coin landed on {result}. {self.players[self.roundStarter].mention} will start the game."
+      return f"The coin landed on {result}. {self.players[self.roundStarter].name} will start the game."
+
+   def resetPlayTimer (self):
+      self.playTime = datetime.utcnow()
 
    def getImages (self):
       if self.roundWinner is None:
@@ -303,10 +339,13 @@ class Game:
 
       for i in range(2):
          crop = board.crop(TOTAL_CROP_COORDS[i])
-         play.paste(crop, TOTAL_COVER_COORDS[i])
+         play.paste(crop, TOTAL_CROP_COORDS[i])
 
          total = self.players[i].total()
-         draw.text(TOTAL_COORDS[i][int(total / 10)], str(total), (255, 255, 255), anchor="ms", font=font)
+         if total >= 0:
+            draw.text(TOTAL_COORDS[i][int(total / 10)], str(total), (255, 255, 255), anchor="ms", font=font)
+         else:
+            draw.text(TOTAL_COORDS[i][int(abs(total) / 10) + 3], str(total), (255, 255, 255), anchor="ms", font=font)
 
       play.save("./images/play.png")
 
@@ -341,6 +380,12 @@ class Game:
 
    def hasCardsLeft (self, player):
       return len(self.players[player].sideDeck) > 0
+
+   def cardIsPlayed (self):
+      self.cardPlayed = True
+
+   def cardNotPlayed (self):
+      self.cardPlayed = False
 
    def showCurrentCards (self, player):
       deck = ""
@@ -400,7 +445,7 @@ class Game:
       play.paste(point, POINT_COORDS[self.roundWinner][self.players[self.roundWinner].points-1])
       play.save("./images/play.png")
 
-      return f"{self.players[self.roundWinner].mention} has won the round!"
+      return f"{self.players[self.roundWinner].name} has won the round!"
 
    def nextRound (self):
       self.round += 1
@@ -453,6 +498,6 @@ class Game:
 
       statement = f"{self.players[self.gameWinner].mention} has won the game!"
       if self.bet > 0:
-         statement += f" {self.bet} coins have been awarded from {self.players[self.gameLoser].mention}!"
+         statement += f" {self.bet} coins have been awarded from {self.players[self.gameLoser].name}!"
 
       return statement

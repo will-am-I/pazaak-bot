@@ -6,10 +6,10 @@ with open('./cards.json') as data:
    cards = json.load(data)
 
 class Player:
-   def __init__ (self, id, name, mention):
-      self.id = id
-      self.name = name
-      self.mention = mention
+   def __init__ (self, player):
+      self.id = player.id
+      self.name = player.name
+      self.mention = player.mention
       self.selection = []
       self.sideDeck = []
       self.fieldCards = []
@@ -22,7 +22,7 @@ class Player:
       db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
       cursor = db.cursor()
       try:
-         cursor.execute(f"INSERT IGNORE INTO pazaak_inventory (discordid) VALUES ({id})")
+         cursor.execute(f"INSERT IGNORE INTO pazaak_inventory (discordid) VALUES ({player.id})")
          db.commit()
       except Exception as e:
          db.rollback()
