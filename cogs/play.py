@@ -193,6 +193,7 @@ class Play(commands.Cog):
 
                if finishedSelection(self.games[gameid]):
                   await self.games[gameid].gameChannel.send(f"{self.games[gameid].mentionPlayer1}, please type **p.heads** or **p.tails** for the coin toss to see who will start the first round.")
+                  self.games[gameid].resetPlayTimer()
 
    @commands.command()
    async def heads (self, ctx):
@@ -381,7 +382,7 @@ class Play(commands.Cog):
          if self.games[game].challenged and datetime.utcnow() - timedelta(minutes=3) > self.games[game].challengeTime:
             await self.games[game].playChannel.send("Challenge has expired.")
             gamesToDelete.append(game.gameid)
-         if not self.games[game].challenged and datetime.utcnow() - timedelta(minutes=5) > self.games[game].playTime:
+         if not self.games[game].challenged and datetime.utcnow() - timedelta(minutes=5) > self.games[game].playTime and finishedSelection(self.games[game]):
             await self.games[game].playChannel.send(f"{self.games[game].getPlayerName()} took too long. Game has been canceled.")
             gamesToDelete.append(self.games[game].gameid)
       for gameid in gamesToDelete:
@@ -457,6 +458,7 @@ async def deleteGame (self, gameid, serverid):
       cursor.execute(f"DELETE FROM game_instance WHERE gameid = {gameid}")
       if separateChannel(serverid):
          await self.games[gameid].gameChannel.delete()
+      self.games[gameid].deleteBoardImage()
       del self.games[gameid]
       db.commit()
    except Exception as e:

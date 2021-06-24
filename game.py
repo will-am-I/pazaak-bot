@@ -492,7 +492,6 @@ class Game:
       try:
          cursor.execute(f"UPDATE pazaak_balance SET credits = credits + {self.bet}, wins = wins + 1 WHERE discordid = {self.players[self.gameWinner].id}")
          cursor.execute(f"UPDATE pazaak_balance SET credits = credits - {self.bet}, losses = losses + 1 WHERE discordid = {self.players[self.gameLoser].id}")
-         os.remove(f"./images/play{self.gameid}.png")
          db.commit()
       except Exception as e:
          db.rollback()
@@ -504,3 +503,6 @@ class Game:
          statement += f" {self.bet} coins have been awarded from {self.players[self.gameLoser].name}!"
 
       return statement
+
+   def deleteBoardImage (self):
+      os.remove(f"./images/play{self.gameid}.png")
