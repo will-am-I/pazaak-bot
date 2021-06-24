@@ -122,7 +122,7 @@ class Info(commands.Cog):
                members = [str(member.id) async for member in ctx.message.guild.fetch_members()]
                members = ', '.join(members)
 
-               cursor.execute(f"SELECT discordid, wins, losses FROM pazaak_balance WHERE discordid IN ({members}) ORDER BY wins DESC, losses ASC")
+               cursor.execute(f"SELECT discordid, wins, losses FROM pazaak_balance WHERE discordid IN ({members}) AND wins + losses > 0 ORDER BY wins DESC, losses ASC")
                if cursor.rowcount < 10:
                   rows = cursor.rowcount
                else:
