@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 import discord, json, MySQLdb, collections, os
 from random import randint
 from player import Player
@@ -485,18 +485,19 @@ class Game:
       else:
          return False
 
-   def declareGameWinner (self):
+   def declareGameWinner (self, serverid):
       db = MySQLdb.connect("localhost", config['database_user'], config['database_pass'], config['database_schema'])
       cursor = db.cursor()
 
-      try:
-         cursor.execute(f"UPDATE pazaak_balance SET credits = credits + {self.bet}, wins = wins + 1 WHERE discordid = {self.players[self.gameWinner].id}")
-         cursor.execute(f"UPDATE pazaak_balance SET credits = credits - {self.bet}, losses = losses + 1 WHERE discordid = {self.players[self.gameLoser].id}")
-         db.commit()
-      except Exception as e:
-         db.rollback()
-         print(str(e))
-      db.close()
+      if serverid != config['test_server']:
+         try:
+            cursor.execute(f"UPDATE pazaak_balance SET credits = credits + {self.bet}, wins = wins + 1 WHERE discordid = {self.players[self.gameWinner].id}")
+            cursor.execute(f"UPDATE pazaak_balance SET credits = credits - {self.bet}, losses = losses + 1 WHERE discordid = {self.players[self.gameLoser].id}")
+            db.commit()
+         except Exception as e:
+            db.rollback()
+            print(str(e))
+         db.close()
 
       statement = f"{self.players[self.gameWinner].mention} has won the game!"
       if self.bet > 0:
