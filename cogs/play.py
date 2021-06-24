@@ -239,6 +239,8 @@ class Play(commands.Cog):
                   self.games[gameid].setCard(randint(1,10))
                   await ctx.send(embed=self.games[gameid].displayBoard(), files=self.games[gameid].getImages())
                   if self.games[gameid].turnOver():
+                     if self.games[gameid].nat20():
+                        await ctx.send(purePazaak(ctx.message.guild))
                      self.games[gameid].stand()
                      if self.games[gameid].roundOver():
                         await endRound(self, ctx, gameid)
@@ -252,6 +254,8 @@ class Play(commands.Cog):
                         self.games[gameid].setCard(randint(1,10))
                         await ctx.send(embed=self.games[gameid].displayBoard(), files=self.games[gameid].getImages())
                         if self.games[gameid].turnOver():
+                           if self.games[gameid].nat20():
+                              await ctx.send(purePazaak(ctx.message.guild))
                            self.games[gameid].stand()
                            await endRound(self, ctx, gameid)
                            if self.games[gameid].gameOver():
@@ -285,6 +289,8 @@ class Play(commands.Cog):
                else:
                   self.games[gameid].setCard(randint(1,10))
                   if self.games[gameid].turnOver():
+                     if self.games[gameid].nat20():
+                        await ctx.send(purePazaak(ctx.message.guild))
                      self.games[gameid].stand()
                      await endRound(self, ctx, gameid)
                      if self.games[gameid].gameOver():
@@ -348,6 +354,8 @@ class Play(commands.Cog):
                            await ctx.send(embed=self.games[gameid].displayBoard(), files=self.games[gameid].getImages())
                            self.games[gameid].resetPlayTimer()
                            if self.games[gameid].turnOver():
+                              if self.games[gameid].nat20():
+                                 await ctx.send(purePazaak(ctx.message.guild))
                               self.games[gameid].stand()
                               if self.games[gameid].roundOver():
                                  await endRound(self, ctx, gameid)
@@ -457,6 +465,12 @@ async def deleteGame (self, gameid, serverid):
       print(str(e))
 
    db.close()
+
+def purePazaak (guild):
+   for emoji in guild.emojis:
+      if "pure" in emoji.name.lower() and "pazaak" in emoji.name.lower():
+         return f":{emoji.name}:"
+   return "Pure Pazaak!"
 
 def setup (client):
    client.add_cog(Play(client))

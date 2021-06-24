@@ -403,6 +403,9 @@ class Game:
       else:
          return False
 
+   def nat20 (self):
+      return self.players[self.currentPlayer].total() == 20 and len(self.players[self.currentPlayer].fieldCards) == 2
+
    def roundOver (self):
       if self.players[PLAYER_1].total() > 20 or self.players[PLAYER_2].total() > 20:
          return True

@@ -15,7 +15,6 @@ class Balance(commands.Cog):
 
    @commands.command()
    async def balance (self, ctx):
-      print("balance")
       db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
       cursor = db.cursor()
 
