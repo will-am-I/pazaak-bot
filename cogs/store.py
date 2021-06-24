@@ -12,26 +12,32 @@ class Store(commands.Cog):
       self.client = client
 
    @commands.command()
-   async def store (self, ctx, page=1):
+   async def store (self, ctx, page=0):
       if storeChannel(ctx.message.guild.id, ctx.message.channel.id):
-         startAt = ((page - 1) * 6)
-         if page == 4:
-            endAt = startAt + 4
-         else:
-            endAt = startAt + 6
-         
-         description = "Use **p.buy <card>** to purchase a card."
-         if page == 4:
-            description += "\nOnly one of each of these cards per person."
-
-         embed = discord.Embed(title="Card Store", colour=discord.Colour(0x4e7e8a), description=description)
-         embed.set_footer(text=f"Page {page}/4 | Use p.store <page> to select another page.")
-         
-         for i in range(startAt, endAt):
-            if page < 4:
-               embed.add_field(name=f"[{cards['cards'][i]['code']}]", value=f"{cards['cards'][i]['cost']} credits", inline=True)
+         if page > 0:
+            startAt = ((page - 1) * 6)
+            if page == 4:
+               endAt = startAt + 4
             else:
-               embed.add_field(name=f"[{cards['cards'][i]['code']}] {cards['cards'][i]['name']}", value=f"{cards['cards'][i]['cost']} credits\n{cards['prestige'][cards['cards'][i]['code']]['requirement']}", inline=False)
+               endAt = startAt + 6
+            
+            description = "Use **p.buy <card>** to purchase a card."
+            if page == 4:
+               description += "\nOnly one of each of these cards per person."
+
+            embed = discord.Embed(title="Card Store", colour=discord.Colour(0x4e7e8a), description=description)
+            for i in range(startAt, endAt):
+               if page < 4:
+                  embed.add_field(name=f"[{cards['cards'][i]['code']}]", value=f"{cards['cards'][i]['cost']} credits", inline=True)
+               else:
+                  embed.add_field(name=f"[{cards['cards'][i]['code']}] {cards['cards'][i]['name']}", value=f"{cards['cards'][i]['cost']} credits\n{cards['prestige'][cards['cards'][i]['code']]['requirement']}", inline=False)
+            embed.set_footer(text=f"Page {page}/4 | Use p.store <page> to select another page.")
+         else:
+            embed = discord.Embed(title="Card Store", colour=discord.Colour(0x4e7e8a), description="Use **p.store <page>** to view the store inventory.")
+            embed.add_field(name="Page 1", value="Plus Cards", inline=False)
+            embed.add_field(name="Page 2", value="Minus Cards", inline=False)
+            embed.add_field(name="Page 3", value="Plus/Minus Cards", inline=False)
+            embed.add_field(name="Page 4", value="Specialty Cards", inline=False)
 
          await ctx.send(embed=embed)
 
