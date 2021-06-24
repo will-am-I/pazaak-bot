@@ -90,7 +90,7 @@ class Info(commands.Cog):
 
          try:
             if all is not None and (all == "all" or all == "global"):
-               cursor.execute("SELECT discordid, wins, losses FROM pazaak_balance ORDER BY wins DESC, losses ASC")
+               cursor.execute("SELECT discordid, wins, losses FROM pazaak_balance WHERE wins + losses > 0 ORDER BY wins DESC, losses ASC")
                if cursor.rowcount < 10:
                   rows = cursor.rowcount
                else:

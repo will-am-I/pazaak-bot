@@ -8,6 +8,7 @@ class Help(commands.Cog):
       
    @commands.command()
    async def help (self, ctx, command=None, dmcommand=None):
+      member = ctx.message.guild.get_member(ctx.message.author.id)
       if command is None:
          embed = discord.Embed(title="Pazaak Commands", colour=discord.Colour(0x4e7e8a), description="Type **p.help <page>** to get command information in each section.")
          embed.add_field(name="1. Playing pazaak", value="These are commands used in pazaak play.", inline=False)
@@ -44,7 +45,7 @@ class Help(commands.Cog):
             embed.add_field(name="**p.top [all/global]**", value="Use this to see the current leaderboard.", inline=False)
             embed.set_footer(text="Arguments with '<>' are required; arguments with '[]' are optional.")
             await ctx.send(embed=embed)
-         elif command == "4" and ctx.message.author.guild_permissions.administrator:
+         elif command == "4" and member.guild_permissions.administrator:
             embed = discord.Embed(title="Server settings", colour=discord.Colour(0x4e7e8a), description="These are settings you may set up for ease of strain on text channels.\nType **p.help <command>** For more information on each one.")
             embed.add_field(name="**p.setup <type> <channel>**", value="Use this to determine which channels to play, send info, and/or use the store.\nOnly members with admin privileges can use this.", inline=False)
             embed.add_field(name="**p.unset <channel>**", value="Use this to allow members to use any channel to play, send info, and/or use the store.\nOnly members with admin privileges can use this.", inline=False)
@@ -82,9 +83,9 @@ class Help(commands.Cog):
          elif command == "decline":
             await ctx.send(embed=discord.Embed(title="p.decline", colour=discord.Colour(0x4e7e8a), description="This command is used to delcline the pazaak challenge.\nIf nothing happens after 3 minutes the challenge expires and is treated as if it was declined anyway."))
          elif command == "heads":
-            await ctx.send(embed=discord.Embed(title="p.heads", colour=discord.Colour(0x4e7e8a), description="This command is used to select heads for the initial coin flip.\nYou will get a prompt to do so when both players have selected their repective side decks."))
+            await ctx.send(embed=discord.Embed(title="p.heads", colour=discord.Colour(0x4e7e8a), description="This command is used to select heads for the initial coin flip.\nYou will get a prompt to do so when both players have selected their repective side decks.\nWinning the coinflip will have the opposing player start, since starting is a disadvantage."))
          elif command == "tails":
-            await ctx.send(embed=discord.Embed(title="p.tails", colour=discord.Colour(0x4e7e8a), description="This command is used to select tails for the initial coin flip.\nYou will get a prompt to do so when both players have selected their repective side decks."))
+            await ctx.send(embed=discord.Embed(title="p.tails", colour=discord.Colour(0x4e7e8a), description="This command is used to select tails for the initial coin flip.\nYou will get a prompt to do so when both players have selected their repective side decks.\nWinning the coinflip will have the opposing player start, since starting is a disadvantage."))
          elif command == "end":
             await ctx.send(embed=discord.Embed(title="p.end", colour=discord.Colour(0x4e7e8a), description="This command is used to end your turn.\nThis will allow the next player to proceed with his turn unless he has typed !stand, in which case it will be your turn again.\nAfterwards play will return to you for your turn.\nIf your total reaches 20 at any time your turn will automatically end and acts as if you already typed !stand."))
          elif command == "stand":
@@ -105,23 +106,23 @@ class Help(commands.Cog):
             embed = discord.Embed(title="p.top [all/global]", colour=discord.Colour(0x4e7e8a), description="This command is used to view the pazaak leaderboard.\nThis will display the current server's leaderboard.\nIt will only display the top 10 if there are more than 10 on the leaderboard.")
             embed.add_field(name="[all/global]", value="Type either 'all' or 'global' to view the global leaderboard.")
             await ctx.send(embed=embed)
-         elif command == "setup" and ctx.message.author.guild_permissions.administrator:
+         elif command == "setup" and member.guild_permissions.administrator:
             embed = discord.Embed(title="p.setup <type> <channel>", colour=discord.Colour(0x4e7e8a), description="This command is used to set which channels to play, send info, and/or shop.\nBy default members may use any channel.")
             embed.add_field(name="<type>", value="Type 'play', 'store', or 'general' to determine which type of information should be displayed in the specified channel.", inline=False)
             embed.add_field(name="<channel>", value="Tag the channel you wish to set the information to go to.", inline=False)
             embed.set_footer(text="Arguments with '<>' are required; arguments with '[]' are optional.")
             await ctx.message.author.send(embed=embed)
-         elif command == "unset" and ctx.message.author.guild_permissions.administrator:
+         elif command == "unset" and member.guild_permissions.administrator:
             embed = discord.Embed(title="p.unset <type>", colour=discord.Colour(0x4e7e8a), description="This command is used to allow members to use any channel to play, send info, and/or shop.\nBy default members may use any channel.")
             embed.add_field(name="<type>", value="Type 'play', 'store', or 'general' to determine which type of information is allowed anywhere.", inline=False)
             embed.set_footer(text="Arguments with '<>' are required; arguments with '[]' are optional.")
             await ctx.message.author.send(embed=embed)
-         elif command == "maxcredits" and ctx.message.author.guild_permissions.administrator:
+         elif command == "maxcredits" and member.guild_permissions.administrator:
             embed = discord.Embed(title="p.maxcredits [amount]", colour=discord.Colour(0x4e7e8a), description="This command is used to set the maximum number of credits members can earn at a time.\nMembers may earn credits every 30 seconds by talking in any text channel.\nThe minimum will always be 1.")
             embed.add_field(name="[amount]", value="Type the maximum amount members can earn.\nIf nothing is entered the maximum reverts to its default at 5 credits.", inline=False)
             embed.set_footer(text="Arguments with '<>' are required; arguments with '[]' are optional.")
             await ctx.message.author.send(embed=embed)
-         elif command == "separate" and ctx.message.author.guild_permissions.adminstrator:
+         elif command == "separate" and member.guild_permissions.adminstrator:
             embed = discord.Embed(title="p.separate <enable/disable>", colour=discord.Colour(0x4e7e8a), description="This command is used if you'd like the bot to create a separate channel for each game of pazaak.\nOnce the game is done the channel is automatically deleted.")
             embed.add_field(name="<enable/disable>", value="Type 'enable' or 'disable' to choose whether separate channels are used.\nThis is disabled by default.", inline=False)
             embed.set_footer(text="Arguments with '<>' are required; arguments with '[]' are optional.")
