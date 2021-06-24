@@ -49,8 +49,9 @@ class Help(commands.Cog):
             embed.add_field(name="**p.setup <type> <channel>**", value="Use this to determine which channels to play, send info, and/or use the store.\nOnly members with admin privileges can use this.", inline=False)
             embed.add_field(name="**p.unset <channel>**", value="Use this to allow members to use any channel to play, send info, and/or use the store.\nOnly members with admin privileges can use this.", inline=False)
             embed.add_field(name="**p.maxcredits [amount]**", value="Use this command to set the maximum number of credits members can earn by talking in chat.\nOnly members with admin privileges can use this.", inline=False)
+            embed.add_field(name="**p.separate <enable/disable>**", value="Use this command to determine if you'd like separate channels for pazaak games.", inline=True)
             embed.set_footer(text="Arguments with '<>' are required; arguments with '[]' are optional.")
-            await ctx.send(embed=embed)
+            await ctx.message.author.send(embed=embed)
          else:
             await ctx.send("That is not one of the 3 pages on the help menu.")
       else:
@@ -109,22 +110,22 @@ class Help(commands.Cog):
             embed.add_field(name="<type>", value="Type 'play', 'store', or 'general' to determine which type of information should be displayed in the specified channel.", inline=False)
             embed.add_field(name="<channel>", value="Tag the channel you wish to set the information to go to.", inline=False)
             embed.set_footer(text="Arguments with '<>' are required; arguments with '[]' are optional.")
-            await ctx.send(embed=embed)
+            await ctx.message.author.send(embed=embed)
          elif command == "unset" and ctx.message.author.guild_permissions.administrator:
             embed = discord.Embed(title="p.unset <type>", colour=discord.Colour(0x4e7e8a), description="This command is used to allow members to use any channel to play, send info, and/or shop.\nBy default members may use any channel.")
             embed.add_field(name="<type>", value="Type 'play', 'store', or 'general' to determine which type of information is allowed anywhere.", inline=False)
             embed.set_footer(text="Arguments with '<>' are required; arguments with '[]' are optional.")
-            await ctx.send(embed=embed)
+            await ctx.message.author.send(embed=embed)
          elif command == "maxcredits" and ctx.message.author.guild_permissions.administrator:
             embed = discord.Embed(title="p.maxcredits [amount]", colour=discord.Colour(0x4e7e8a), description="This command is used to set the maximum number of credits members can earn at a time.\nMembers may earn credits every 30 seconds by talking in any text channel.\nThe minimum will always be 1.")
             embed.add_field(name="[amount]", value="Type the maximum amount members can earn.\nIf nothing is entered the maximum reverts to its default at 5 credits.", inline=False)
             embed.set_footer(text="Arguments with '<>' are required; arguments with '[]' are optional.")
-            await ctx.send(embed=embed)
+            await ctx.message.author.send(embed=embed)
          elif command == "separate" and ctx.message.author.guild_permissions.adminstrator:
             embed = discord.Embed(title="p.separate <enable/disable>", colour=discord.Colour(0x4e7e8a), description="This command is used if you'd like the bot to create a separate channel for each game of pazaak.\nOnce the game is done the channel is automatically deleted.")
             embed.add_field(name="<enable/disable>", value="Type 'enable' or 'disable' to choose whether separate channels are used.\nThis is disabled by default.", inline=False)
             embed.set_footer(text="Arguments with '<>' are required; arguments with '[]' are optional.")
-            await ctx.send(embed=embed)
+            await ctx.message.author.send(embed=embed)
          else:
             await ctx.send(f"{command} is not a pazaak command.")
 
