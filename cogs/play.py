@@ -369,7 +369,6 @@ class Play(commands.Cog):
                   except Exception as e:
                      print(str(e))
                      await ctx.send("There was a mistake in your play input. Please try again using the proper formatting.")
-               self.games[gameid].resetPlayTimer()
             else:
                await ctx.send(f"{ctx.message.author.name}, it is not your turn.")
          else:
