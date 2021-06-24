@@ -8,7 +8,7 @@ with open('./cards.json') as data:
 class Player:
    def __init__ (self, player):
       self.id = player.id
-      self.name = player.name
+      self.name = player.display_name
       self.mention = player.mention
       self.selection = []
       self.sideDeck = []
