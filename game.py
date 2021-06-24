@@ -51,14 +51,14 @@ class Game:
       
       draw = ImageDraw.Draw(play)
       font = ImageFont.truetype("./BankGothic Regular.ttf", size=20)
-      draw.text((67, 34), player1.display_name, (91, 100, 42), anchor="ls", font=font)
-      draw.text((486, 34), player2.display_name, (91, 100, 42), anchor="rs", font=font)
+      draw.text((67, 34), player1.display_name, (255, 255, 255), anchor="ls", font=font)
+      draw.text((484, 34), player2.display_name, (255, 255, 255), anchor="rs", font=font)
 
       for i in range(2):
          for j in range(4):
             play.paste(covered, DECK_COORDS[i][j], covered)
 
-      play.save("./images/play.png")
+      play.save(f"./images/play{gameid}.png")
 
    def getPlayerID (self, player=None):
       if player is None:
@@ -220,9 +220,9 @@ class Game:
 
    def getImages (self):
       if self.roundWinner is None:
-         return [discord.File(f"./images/{self.playedCardImage}", filename=self.playedCardImage), discord.File("./images/play.png", filename="play.png")]
+         return [discord.File(f"./images/{self.playedCardImage}", filename=self.playedCardImage), discord.File(f"./images/play{self.gameid}.png", filename="play.png")]
       else:
-         return [discord.File("./images/play.png", filename="play.png")]
+         return [discord.File(f"./images/play{self.gameid}.png", filename="play.png")]
 
    def setCard (self, value, card=None):
       if card is not None:
@@ -245,7 +245,7 @@ class Game:
          self.players[self.currentPlayer].play(value)
 
    def findCardImage (self, value, card=None):
-      play = Image.open("./images/play.png")
+      play = Image.open(f"./images/play{self.gameid}.png")
 
       if card is not None:
          card = card.translate({ord(i): None for i in '[]'})
@@ -320,10 +320,10 @@ class Game:
          newCard = newCard.resize(CARD_SIZE)
          play.paste(newCard, FIELD_COORDS[self.currentPlayer][len(self.players[self.currentPlayer].fieldCards)], newCard)
       
-      play.save("./images/play.png")
+      play.save(f"./images/play{self.gameid}.png")
 
    def displayBoard (self):
-      play = Image.open("./images/play.png")
+      play = Image.open(f"./images/play{self.gameid}.png")
       board = Image.open("./images/board.png")
       draw = ImageDraw.Draw(play)
       font = ImageFont.truetype("./BankGothic Regular.ttf", size=20)
@@ -347,7 +347,7 @@ class Game:
          else:
             draw.text(TOTAL_COORDS[i][int(abs(total) / 10) + 3], str(total), (255, 255, 255), anchor="ms", font=font)
 
-      play.save("./images/play.png")
+      play.save(f"./images/play{self.gameid}.png")
 
       if self.roundWinner is not None:
          embed = discord.Embed(title="Current Board", colour=discord.Colour(0x4e7e8a))
@@ -439,11 +439,11 @@ class Game:
    def declareRoundWinner (self):
       self.players[self.roundWinner].won()
 
-      play = Image.open("./images/play.png")
+      play = Image.open(f"./images/play{self.gameid}.png")
       point = Image.open("./images/point.png")
 
       play.paste(point, POINT_COORDS[self.roundWinner][self.players[self.roundWinner].points-1])
-      play.save("./images/play.png")
+      play.save(f"./images/play{self.gameid}.png")
 
       return f"{self.players[self.roundWinner].name} has won the round!"
 
@@ -456,12 +456,12 @@ class Game:
       else:
          self.currentPlayer = self.roundStarter
 
-      play = Image.open("./images/play.png")
+      play = Image.open(f"./images/play{self.gameid}.png")
       board = Image.open("./images/board.png")
 
       crop = board.crop((0, 78, 547, 287))
       play.paste(crop, (0, 78))
-      play.save("./images/play.png")
+      play.save(f"./images/play{self.gameid}.png")
 
       self.players[PLAYER_1].clear()
       self.players[PLAYER_2].clear()
@@ -489,7 +489,7 @@ class Game:
       try:
          cursor.execute(f"UPDATE pazaak_balance SET credits = credits + {self.bet}, wins = wins + 1 WHERE discordid = {self.players[self.gameWinner].id}")
          cursor.execute(f"UPDATE pazaak_balance SET credits = credits - {self.bet}, losses = losses + 1 WHERE discordid = {self.players[self.gameLoser].id}")
-         os.remove("./images/play.png")
+         os.remove(f"./images/play{self.gameid}.png")
          db.commit()
       except Exception as e:
          db.rollback()
