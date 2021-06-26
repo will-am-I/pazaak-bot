@@ -396,7 +396,7 @@ async def endRound (self, ctx, gameid):
       await ctx.send(content="Round tied!", embed=self.games[gameid].displayBoard(), files=self.games[gameid].getImages())
 
 async def endGame (self, ctx, gameid):
-   await self.games[gameid].playChannel.send(self.games[gameid].declareGameWinner())
+   await self.games[gameid].playChannel.send(self.games[gameid].declareGameWinner(ctx.message.guild.id))
    await deleteGame(self, gameid, ctx.message.guild.id)
 
 def playChannel (serverid, channelid):
@@ -470,7 +470,7 @@ async def deleteGame (self, gameid, serverid):
 def purePazaak (guild):
    for emoji in guild.emojis:
       if "pure" in emoji.name.lower() and "pazaak" in emoji.name.lower():
-         return f":{emoji.name}:"
+         return str(emoji)
    return "Pure Pazaak!"
 
 def setup (client):

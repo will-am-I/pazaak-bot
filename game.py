@@ -501,7 +501,7 @@ class Game:
 
       statement = f"{self.players[self.gameWinner].mention} has won the game!"
       if self.bet > 0:
-         statement += f" {self.bet} coins have been awarded from {self.players[self.gameLoser].name}!"
+         statement += f" {self.bet} credits have been awarded from {self.players[self.gameLoser].name}!"
 
       return statement
 
