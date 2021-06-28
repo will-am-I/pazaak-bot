@@ -34,15 +34,15 @@ class Info(commands.Cog):
                   if result[0] == ctx.message.author.id:
                      wins = result[1]
                      losses = result[2]
-                     globalRank = str(place)
-                     if globalRank.endswith("1") and not globalRank.endswith("11"):
-                        globalRank += "st"
-                     elif globalRank.endswith("2") and not globalRank.endswith("12"):
-                        globalRank += "nd"
-                     elif globalRank.endswith("3") and not globalRank.endswith("13"):
-                        globalRank += "rd"
+                     serverRank = str(place)
+                     if serverRank.endswith("1") and not serverRank.endswith("11"):
+                        serverRank += "st"
+                     elif serverRank.endswith("2") and not serverRank.endswith("12"):
+                        serverRank += "nd"
+                     elif serverRank.endswith("3") and not serverRank.endswith("13"):
+                        serverRank += "rd"
                      else:
-                        globalRank += "th"
+                        serverRank += "th"
                      break
                
                cursor.execute("SELECT discordid, wins, losses FROM pazaak_balance ORDER BY wins DESC, losses ASC")
@@ -54,15 +54,15 @@ class Info(commands.Cog):
                   if result[0] == ctx.message.author.id:
                      wins = result[1]
                      losses = result[2]
-                     serverRank = str(place)
-                     if serverRank.endswith("1") and not serverRank.endswith("11"):
-                        serverRank += "st"
-                     elif serverRank.endswith("2") and not serverRank.endswith("12"):
-                        serverRank += "nd"
-                     elif serverRank.endswith("3") and not serverRank.endswith("13"):
-                        serverRank += "rd"
+                     globalRank = str(place)
+                     if globalRank.endswith("1") and not globalRank.endswith("11"):
+                        globalRank += "st"
+                     elif globalRank.endswith("2") and not globalRank.endswith("12"):
+                        globalRank += "nd"
+                     elif globalRank.endswith("3") and not globalRank.endswith("13"):
+                        globalRank += "rd"
                      else:
-                        serverRank += "th"
+                        globalRank += "th"
                      break
 
                embed = discord.Embed(title=f"{ctx.message.author.name}'s Pazaak Rank", colour=discord.Colour(0x4e7e8a), description=f"You are **{serverRank}** on {ctx.message.guild.name}'s leaderboard.\nYou are **{globalRank}** on the global leaderboard.")

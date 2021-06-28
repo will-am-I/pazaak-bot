@@ -19,15 +19,14 @@ class Balance(commands.Cog):
       cursor = db.cursor()
 
       try:
+         file = discord.File("./images/credits.png", filename="credits.png")
          cursor.execute(f"SELECT credits FROM pazaak_balance WHERE discordid = {ctx.message.author.id}")
          if cursor.rowcount > 0:
             credits = cursor.fetchone()[0]
-
-            file = discord.File("./images/credits.png", filename="credits.png")
             embed = discord.Embed(title=f"{ctx.message.author.name}'s credit balance", colour=discord.Colour(0x4e7e8a), description=f"You currently have **{credits}** credits.")
-            embed.set_thumbnail(url="attachment://credits.png")
          else:
             embed = discord.Embed(title=f"{ctx.message.author.name}'s credit balance", colour=discord.Colour(0x4e7e8a), description=f"You currently have **0** credits.")
+         embed.set_thumbnail(url="attachment://credits.png")
          await ctx.send(file=file, embed=embed)
       except Exception as e:
          print(str(e))
