@@ -375,6 +375,26 @@ class Play(commands.Cog):
          else:
             await ctx.send(f"{ctx.message.author.name}, you are not a part of this game.")
 
+   @commands.command()
+   async def reset (self, ctx):
+      if ctx.message.author.id == config['dev_id']:
+         db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+         cursor = db.cursor()
+
+         try:
+            cursor.execute("SELECT gameid FROM game_instance")
+            games = cursor.fetchall()
+
+            cursor.execute("SELECT server_id FROM server_info")
+            servers = cursor.fetchall()
+
+            for i in range(games):
+               deleteGame(self, games[i], servers[i])
+         except Exception as e:
+            print(str(e))
+         else:
+            await ctx.send("All games have been reset.")
+
    @tasks.loop(seconds=10)
    async def timer (self):
       gamesToDelete = []
