@@ -25,7 +25,7 @@ class Info(commands.Cog):
                members = [str(member.id) async for member in ctx.message.guild.fetch_members()]
                members = ', '.join(members)
 
-               cursor.execute(f"SELECT * FROM pazaak_balance WHERE discordid IN ({members}) ORDER BY POWER(wins, 2) / (wins + losses + 1) DESC")
+               cursor.execute(f"SELECT * FROM pazaak_balance WHERE discordid IN ({members}) ORDER BY POWER(wins, 2) / (wins + losses) DESC")
                results = cursor.fetchall()
 
                place = 0
@@ -45,7 +45,7 @@ class Info(commands.Cog):
                         serverRank += "th"
                      break
                
-               cursor.execute("SELECT discordid, wins, losses FROM pazaak_balance ORDER BY POWER(wins, 2) / (wins + losses + 1) DESC")
+               cursor.execute("SELECT discordid, wins, losses FROM pazaak_balance ORDER BY POWER(wins, 2) / (wins + losses) DESC")
                results = cursor.fetchall()
                
                place = 0
@@ -90,7 +90,7 @@ class Info(commands.Cog):
 
          try:
             if all is not None and (all == "all" or all == "global"):
-               cursor.execute("SELECT discordid, wins, losses FROM pazaak_balance WHERE wins + losses > 0 ORDER BY POWER(wins, 2) / (wins + losses + 1) DESC")
+               cursor.execute("SELECT discordid, wins, losses FROM pazaak_balance WHERE wins + losses > 0 ORDER BY POWER(wins, 2) / (wins + losses) DESC")
                if cursor.rowcount < 10:
                   rows = cursor.rowcount
                else:
@@ -122,7 +122,7 @@ class Info(commands.Cog):
                members = [str(member.id) async for member in ctx.message.guild.fetch_members()]
                members = ', '.join(members)
 
-               cursor.execute(f"SELECT discordid, wins, losses FROM pazaak_balance WHERE discordid IN ({members}) AND wins + losses > 0 ORDER BY POWER(wins, 2) / (wins + losses + 1) DESC")
+               cursor.execute(f"SELECT discordid, wins, losses FROM pazaak_balance WHERE discordid IN ({members}) AND wins + losses > 0 ORDER BY POWER(wins, 2) / (wins + losses) DESC")
                if cursor.rowcount < 10:
                   rows = cursor.rowcount
                else:
