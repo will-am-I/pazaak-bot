@@ -11,7 +11,7 @@ class Store(commands.Cog):
    def __init__ (self, client):
       self.client = client
 
-   @commands.command()
+   @commands.command(aliases=['shop'])
    async def store (self, ctx, page=0):
       if storeChannel(ctx.message.guild.id, ctx.message.channel.id):
          if page > 0:

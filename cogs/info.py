@@ -65,7 +65,7 @@ class Info(commands.Cog):
                         globalRank += "th"
                      break
 
-               embed = discord.Embed(title=f"{ctx.message.author.name}'s Pazaak Rank", colour=discord.Colour(0x4e7e8a), description=f"You are **{serverRank}** on {ctx.message.guild.name}'s leaderboard.\nYou are **{globalRank}** on the global leaderboard.")
+               embed = discord.Embed(title=f"{ctx.message.author.display_name}'s Pazaak Rank", colour=discord.Colour(0x4e7e8a), description=f"You are **{serverRank}** on {ctx.message.guild.name}'s leaderboard.\nYou are **{globalRank}** on the global leaderboard.")
                embed.set_thumbnail(url=ctx.message.author.avatar_url)
                embed.add_field(name="Wins", value=wins)
                embed.add_field(name="Losses", value=losses)
