@@ -115,4 +115,4 @@ dmypy.json
 
 config.json
 start.bat
-images/play.png
+images/play*.png

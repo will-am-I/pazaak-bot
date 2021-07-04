@@ -48,10 +48,10 @@ class Play(commands.Cog):
                      await ctx.send(f"{player1.name}, neither you nor {player2.name} have enough credits for a {wager}-credit bet.")
                   elif wager >= p1coins:
                      await ctx.send(f"{player1.name}, you don't have enough credits to bet {wager} credits.")
-                  elif wager >= p1coins:
+                  elif wager >= p2coins:
                      await ctx.send(f"{player1.name}, {player2.name} doesn't have enough credits to bet {wager} credits.")
                   else:
-                     cursor.execute(f"INSERT INTO game_instance (player1id, player2id) VALUES ({player1.id}, {player2.id})")
+                     cursor.execute(f"INSERT INTO game_instance (serverid, player1id, player2id) VALUES ({ctx.message.guild.id}, {player1.id}, {player2.id})")
                      db.commit()
                      cursor.execute(f"SELECT gameid FROM game_instance WHERE player1id = {player1.id} AND player2id = {player2.id}")
                      gameid = cursor.fetchone()[0]
@@ -316,15 +316,17 @@ class Play(commands.Cog):
             if self.games[gameid].isCurrentPlayer(ctx.message.author.id):
                card = card.translate({ord(i): None for i in '[]'})
                if self.games[gameid].cardPlayed:
-                  await ctx.send("You already played a card this turn. Type !end to end your turn or !stand to stay on your hand.")
+                  await ctx.send("You already played a card this turn. Type **p.end** to end your turn or **p.stand** to stay on your hand.")
                elif not self.games[gameid].canPlayCard(card):
                   await ctx.send(f"You don't have a [{card}] card in your side deck.")
                else:
                   try:
                      if card == "T":
                         self.games[gameid].setCard(int(f"{sign}1"), card)
-                     elif card == "D" or card == "F2/4" or card == "F3/6":
+                     elif card == "F2/4" or card == "F3/6":
                         self.games[gameid].setCard(0, card)
+                     elif card == "D":
+                        self.games[gameid].setCard(self.games[gameid].lastCardPlayed(), card)
                      else:
                         if sign is None:
                            self.games[gameid].setCard(int(card), card)
@@ -382,14 +384,11 @@ class Play(commands.Cog):
          cursor = db.cursor()
 
          try:
-            cursor.execute("SELECT gameid FROM game_instance")
-            games = cursor.fetchall()
+            cursor.execute("SELECT gameid, serverid FROM game_instance")
+            results = cursor.fetchall()
 
-            cursor.execute("SELECT server_id FROM server_info")
-            servers = cursor.fetchall()
-
-            for i in range(games):
-               deleteGame(self, games[i], servers[i])
+            for result in results:
+               await deleteGame(self, result[0], result[1])
          except Exception as e:
             print(str(e))
          else:
@@ -399,9 +398,9 @@ class Play(commands.Cog):
    async def timer (self):
       gamesToDelete = []
       for game in self.games:
-         if self.games[game].challenged and datetime.utcnow() - timedelta(minutes=3) > self.games[game].challengeTime:
+         if self.games[game].challenged and datetime.utcnow() - timedelta(minutes=2) > self.games[game].challengeTime:
             await self.games[game].playChannel.send("Challenge has expired.")
-            gamesToDelete.append(game.gameid)
+            gamesToDelete.append(self.games[game].gameid)
          if not self.games[game].challenged and datetime.utcnow() - timedelta(minutes=5) > self.games[game].playTime and finishedSelection(self.games[game]):
             await self.games[game].playChannel.send(f"{self.games[game].getPlayerName()} took too long. Game has been canceled.")
             gamesToDelete.append(self.games[game].gameid)

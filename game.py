@@ -260,20 +260,45 @@ class Game:
             for i in range(len(self.players[self.currentPlayer].fieldCards)):
                setCard = self.players[self.currentPlayer].fieldCards[i]
                setCardID = self.players[self.currentPlayer].fieldCardIDs[i]
+               print(setCard, setCardID)
 
-               if setCard in [3, 6, 2, 4]:
-                  if 'dc' in setCardID:
-                     newCard = Image.open(f"./images/dc{setCard}.png")
-                  else:
-                     newCard = Image.open(f"./images/f_p_{setCardID}.png")
-                     
-                  newCard = newCard.resize(CARD_SIZE)
-                  play.paste(newCard, FIELD_COORDS[self.currentPlayer][i], newCard)
+               if '3/6' in card:
+                  if setCard in [3, 6]:
+                     if f'm{setCard}' in setCardID or f'm_pm{setCard}' in setCardID:
+                        newCard = Image.open(f"./images/{setCardID}.png")
+                     else:
+                        newCard = Image.open(f"./images/f_m_{setCardID}.png")
+                     newCard = newCard.resize(CARD_SIZE)
+                     play.paste(newCard, FIELD_COORDS[self.currentPlayer][i], newCard)
+                     print(setCard, "Flipped")
 
-               if setCard in [-3, -6, -2, -4]:
-                  newCard = Image.open(f"./images/f_m_{setCardID}.png")
-                  newCard = newCard.resize(CARD_SIZE)
-                  play.paste(newCard, FIELD_COORDS[self.currentPlayer][i], newCard)
+                  if setCard in [-3, -6]:
+                     if setCardID.isdigit() or 'dc' in setCardID or f'p{setCard}' in setCardID or f'p_pm{setCard}' in setCardID:
+                        newCard = Image.open(f"./images/{setCardID}.png")
+                     else:
+                        newCard = Image.open(f"./images/f_p_{setCardID}.png")
+                     newCard = newCard.resize(CARD_SIZE)
+                     play.paste(newCard, FIELD_COORDS[self.currentPlayer][i], newCard)
+                     print(setCard, "Flipped")
+               
+               if '2/4' in card:
+                  if setCard in [2, 4]:
+                     if f'm{setCard}' in setCardID or f'm_pm{setCard}' in setCardID:
+                        newCard = Image.open(f"./images/{setCardID}.png")
+                     else:
+                        newCard = Image.open(f"./images/f_m_{setCardID}.png")
+                     newCard = newCard.resize(CARD_SIZE)
+                     play.paste(newCard, FIELD_COORDS[self.currentPlayer][i], newCard)
+                     print(setCard, "Flipped")
+
+                  if setCard in [-2, -4]:
+                     if setCardID.isdigit() or 'dc' in setCardID or f'p{setCard}' in setCardID or f'p_pm{setCard}' in setCardID:
+                        newCard = Image.open(f"./images/{setCardID}.png")
+                     else:
+                        newCard = Image.open(f"./images/f_p_{setCardID}.png")
+                     newCard = newCard.resize(CARD_SIZE)
+                     play.paste(newCard, FIELD_COORDS[self.currentPlayer][i], newCard)
+                     print(setCard, "Flipped")
                   
          elif 'D' in card:
             self.playedCardImage = f"dc.png"
@@ -321,6 +346,9 @@ class Game:
          play.paste(newCard, FIELD_COORDS[self.currentPlayer][len(self.players[self.currentPlayer].fieldCards)], newCard)
       
       play.save(f"./images/play{self.gameid}.png")
+
+   def lastCardPlayed (self):
+      return self.players[self.currentPlayer].last()
 
    def displayBoard (self):
       play = Image.open(f"./images/play{self.gameid}.png")
