@@ -162,7 +162,7 @@ class Play(commands.Cog):
             if currentPlayer >= 0:
                cardOptions = [item['code'] for item in cards['cards']]
 
-               db = mysql.connector.connect("localhost", config['database_user'], config['database_pass'], config['database_schema'])
+               db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
                cursor = db.cursor()
 
                try:
