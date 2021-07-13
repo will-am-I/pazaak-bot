@@ -1,7 +1,10 @@
-import discord, MySQLdb, os, json
+import discord, mysql.connector, os, json
+from discord import integrations
 from discord.ext import commands
 
-client = commands.Bot(command_prefix = 'p.')
+intents = discord.Intents.default()
+intents.members = True
+client = commands.Bot(command_prefix = 'p.', intents=intents)
 client.remove_command('help')
 
 with open('./config.json') as data:
@@ -33,7 +36,7 @@ async def reload (ctx, extension):
 
 @client.event
 async def on_guild_join (guild):
-   db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+   db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
    cursor = db.cursor()
 
    try:
@@ -43,6 +46,22 @@ async def on_guild_join (guild):
       db.rollback()
       print(str(e))
 
+   cursor.close()
+   db.close()
+
+@client.event
+async def on_guild_remove (guild):
+   db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
+   cursor = db.cursor()
+
+   try:
+      cursor.execute(f"DELETE FROM server_info WHERE server_id = {guild.id}")
+      db.commit()
+   except Exception as e:
+      db.rollback()
+      print(str(e))
+
+   cursor.close()
    db.close()
    
 for filename in os.listdir('./cogs'):

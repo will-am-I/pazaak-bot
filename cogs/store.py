@@ -1,4 +1,4 @@
-import discord, json, MySQLdb
+import discord, json, mysql.connector
 from discord.ext import commands
 
 with open('./config.json') as data:
@@ -48,11 +48,12 @@ class Store(commands.Cog):
          dbcard = next(item['db_name'] for item in cards['cards'] if item['code'] == card)
          cost = next(item['cost'] for item in cards['cards'] if item['code'] == card)
 
-         db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+         db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
          cursor = db.cursor()
 
          try:
             cursor.execute(f"SELECT * FROM pazaak_inventory WHERE discordid = {ctx.message.author.id}")
+            _ = cursor.fetchall()
 
             if cursor.rowcount == 0:
                await ctx.send("You don't currently have a deck of your own. Play your first game of pazaak to obtain a deck.")
@@ -94,17 +95,19 @@ class Store(commands.Cog):
          except Exception as e:
             db.rollback()
             print(str(e))
-
+         
+         cursor.close()
          db.close()
       
 def storeChannel (serverid, channelid):
    try:
-      db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+      db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
       cursor = db.cursor()
 
       cursor.execute(f"SELECT store_channel FROM server_info WHERE server_id = {serverid}")
       storeChannel = cursor.fetchone()[0]
 
+      cursor.close()
       db.close()
       return storeChannel is None or storeChannel == channelid
 

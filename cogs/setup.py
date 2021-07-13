@@ -1,4 +1,4 @@
-import discord, json, MySQLdb
+import discord, json, mysql.connector
 from discord.ext import commands
 
 with open('./config.json') as data:
@@ -11,7 +11,7 @@ class Setup(commands.Cog):
 
    @commands.command()
    async def setup (self, ctx, type=None, channel:discord.TextChannel=None):
-      db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+      db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
       cursor = db.cursor()
 
       try:
@@ -31,11 +31,12 @@ class Setup(commands.Cog):
          db.rollback()
          print(str(e))
 
+      cursor.close()
       db.close()
 
    @commands.command()
    async def unset (self, ctx, type=None):
-      db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+      db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
       cursor = db.cursor()
 
       try:
@@ -55,11 +56,12 @@ class Setup(commands.Cog):
          db.rollback()
          print(str(e))
 
+      cursor.close()
       db.close()
 
    @commands.command()
    async def maxcredits (self, ctx, amount=5):
-      db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+      db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
       cursor = db.cursor()
 
       try:
@@ -72,13 +74,14 @@ class Setup(commands.Cog):
          db.rollback()
          print(str(e))
 
+      cursor.close()
       db.close()
 
    @commands.command()
    async def separate (self, ctx, action):
       value = 0 if action == "disable" else 1
 
-      db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+      db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
       cursor = db.cursor()
 
       try:
@@ -91,6 +94,7 @@ class Setup(commands.Cog):
          db.rollback()
          print(str(e))
 
+      cursor.close()
       db.close()
 
 def setup (client):

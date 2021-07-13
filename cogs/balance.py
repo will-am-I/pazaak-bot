@@ -1,4 +1,4 @@
-import discord, json, MySQLdb
+import discord, json, mysql.connector
 from discord.ext import commands
 from datetime import datetime, timedelta
 from random import randint
@@ -15,14 +15,15 @@ class Balance(commands.Cog):
 
    @commands.command(aliases=['bal', 'credits', 'cred'])
    async def balance (self, ctx):
-      db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+      db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
       cursor = db.cursor()
 
       try:
          file = discord.File("./images/credits.png", filename="credits.png")
          cursor.execute(f"SELECT credits FROM pazaak_balance WHERE discordid = {ctx.message.author.id}")
+         results = cursor.fetchone()
          if cursor.rowcount > 0:
-            credits = cursor.fetchone()[0]
+            credits = results[0]
             embed = discord.Embed(title=f"{ctx.message.author.display_name}'s credit balance", colour=discord.Colour(0x4e7e8a), description=f"You currently have **{credits}** credits.")
          else:
             embed = discord.Embed(title=f"{ctx.message.author.display_name}'s credit balance", colour=discord.Colour(0x4e7e8a), description=f"You currently have **0** credits.")
@@ -31,12 +32,13 @@ class Balance(commands.Cog):
       except Exception as e:
          print(str(e))
       
+      cursor.close()
       db.close()
 
    @commands.Cog.listener()
    async def on_message (self, message):
       if message.author.id != config['bot_id'] and (not message.content.startswith("p.")):
-         db = MySQLdb.connect("localhost", config['database_user'], config['database_pass'], config['database_schema'])
+         db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
          cursor = db.cursor()
 
          try:
@@ -55,6 +57,7 @@ class Balance(commands.Cog):
             db.rollback()
             print(str(e))
 
+         cursor.close()
          db.close()
 
 def setup (client):

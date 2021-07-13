@@ -1,4 +1,4 @@
-import discord, json, MySQLdb
+import discord, json, mysql.connector
 from discord.ext import commands
 
 with open('./config.json') as data:
@@ -14,7 +14,7 @@ class Info(commands.Cog):
    @commands.command()
    async def rank (self, ctx):
       if generalChannel(ctx.message.guild.id, ctx.message.channel.id):
-         db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+         db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
          cursor = db.cursor()
 
          try:
@@ -80,28 +80,27 @@ class Info(commands.Cog):
          except Exception as e:
             print(str(e))
          
+         cursor.close()
          db.close()
 
    @commands.command()
    async def top (self, ctx, all=None):
       if generalChannel(ctx.message.guild.id, ctx.message.channel.id):
-         db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+         db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
          cursor = db.cursor()
 
          try:
             if all is not None and (all == "all" or all == "global"):
                cursor.execute("SELECT discordid, wins, losses FROM pazaak_balance WHERE wins + losses > 0 ORDER BY POWER(wins, 2) / (wins + losses) DESC")
+               results = cursor.fetchall()
                if cursor.rowcount < 10:
                   rows = cursor.rowcount
                else:
                   rows = 10
-               results = cursor.fetchall()
                
-               embed = discord.Embed(title="Overall Pazaak Leaderboard", colour=discord.Colour(0x4e7e8a))
                names = []
                wins = []
                losses = []
-
                for i in range(rows):
                   user = await self.client.fetch_user(results[i][0])
                   names.append(f"**{i+1}.** {user.name}")
@@ -112,10 +111,10 @@ class Info(commands.Cog):
                wins = '\n'.join(wins)
                losses = '\n'.join(losses)
 
+               embed = discord.Embed(title="Overall Pazaak Leaderboard", colour=discord.Colour(0x4e7e8a))
                embed.add_field(name="Players", value=names, inline=True)
                embed.add_field(name="Wins", value=wins, inline=True)
                embed.add_field(name="Losses", value=losses, inline=True)
-
 
                await ctx.send(embed=embed)
             else:
@@ -123,17 +122,15 @@ class Info(commands.Cog):
                members = ', '.join(members)
 
                cursor.execute(f"SELECT discordid, wins, losses FROM pazaak_balance WHERE discordid IN ({members}) AND wins + losses > 0 ORDER BY POWER(wins, 2) / (wins + losses) DESC")
+               results = cursor.fetchall()
                if cursor.rowcount < 10:
                   rows = cursor.rowcount
                else:
                   rows = 10
-               results = cursor.fetchall()
                
-               embed = discord.Embed(title=f"{ctx.message.guild.name}'s Pazaak Leaderboard", colour=discord.Colour(0x4e7e8a))
                names = []
                wins = []
                losses = []
-
                for i in range(rows):
                   user = await self.client.fetch_user(results[i][0])
                   names.append(f"**{i+1}.** {user.display_name}")
@@ -143,27 +140,28 @@ class Info(commands.Cog):
                names = '\n'.join(names)
                wins = '\n'.join(wins)
                losses = '\n'.join(losses)
-
+               
+               embed = discord.Embed(title=f"{ctx.message.guild.name}'s Pazaak Leaderboard", colour=discord.Colour(0x4e7e8a))
                embed.add_field(name="Players", value=names, inline=True)
                embed.add_field(name="Wins", value=wins, inline=True)
                embed.add_field(name="Losses", value=losses, inline=True)
-
+               
                await ctx.send(embed=embed)
          except Exception as e:
             print(str(e))
 
+         cursor.close()
          db.close()
 
    @commands.command()
    async def inventory (self, ctx):
-      db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+      db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
       cursor = db.cursor()
 
       cursor.execute(f"SELECT p1, p2, p3, p4, p5, p6, m1, m2, m3, m4, m5, m6, pm1, pm2, pm3, pm4, pm5, pm6, f24, f36, dc, tc FROM pazaak_inventory WHERE discordid = {ctx.message.author.id}")
+      cardAmounts = cursor.fetchone()
 
       if cursor.rowcount > 0:
-         cardAmounts = cursor.fetchone()
-
          embed = discord.Embed(title="Your deck", colour=discord.Colour(0x4e7e8a))
          for i in range(len(cards['cards'])):
             if any(n in cards['cards'][i]['code'] for n in ['F', 'D', 'T']):
@@ -176,16 +174,18 @@ class Info(commands.Cog):
       else:
          await ctx.send(f"{ctx.message.author.mention}, you currently don't have a pazaak deck. Play your first game of pazaak to obtain a deck.")
       
+      cursor.close()
       db.close()
       
 def generalChannel (serverid, channelid):
    try:
-      db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+      db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
       cursor = db.cursor()
 
       cursor.execute(f"SELECT general_channel FROM server_info WHERE server_id = {serverid}")
       generalChannel = cursor.fetchone()[0]
 
+      cursor.close()
       db.close()
       return generalChannel is None or generalChannel == channelid
 

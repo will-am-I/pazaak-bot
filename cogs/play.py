@@ -1,4 +1,4 @@
-import discord, json, MySQLdb
+import discord, json, mysql.connector
 from discord.ext import commands, tasks
 from datetime import datetime, timedelta
 from random import randint
@@ -35,7 +35,7 @@ class Play(commands.Cog):
             else:
                wager = int(wager)
 
-               db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+               db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
                cursor = db.cursor()
 
                try:
@@ -65,6 +65,7 @@ class Play(commands.Cog):
                   print(str(e))
                   print(e.args)
 
+               cursor.close()
                db.close()
 
    @commands.command()
@@ -161,7 +162,7 @@ class Play(commands.Cog):
             if currentPlayer >= 0:
                cardOptions = [item['code'] for item in cards['cards']]
 
-               db = MySQLdb.connect("localhost", config['database_user'], config['database_pass'], config['database_schema'])
+               db = mysql.connector.connect("localhost", config['database_user'], config['database_pass'], config['database_schema'])
                cursor = db.cursor()
 
                try:
@@ -173,7 +174,8 @@ class Play(commands.Cog):
                         self.games[gameid].addSelection(currentPlayer, cardOptions[i])
                except Exception as e:
                   print(str(e))
-
+               
+               cursor.close()
                db.close()
                await ctx.send(embed=self.games[gameid].showSelection(currentPlayer))
       
@@ -380,7 +382,7 @@ class Play(commands.Cog):
    @commands.command()
    async def reset (self, ctx):
       if ctx.message.author.id == config['dev_id']:
-         db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+         db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
          cursor = db.cursor()
 
          try:
@@ -420,7 +422,7 @@ async def endGame (self, ctx, gameid):
 
 def playChannel (serverid, channelid):
    try:
-      db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+      db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
       cursor = db.cursor()
       cursor.execute(f"SELECT play_channel FROM server_info WHERE server_id = {serverid}")
       playChannel = cursor.fetchone()[0]
@@ -432,10 +434,12 @@ def playChannel (serverid, channelid):
 
 def inGame (player):
    try:
-      db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+      db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
       cursor = db.cursor()
       cursor.execute(f"SELECT * FROM game_instance WHERE player1id = {player.id} OR player2id = {player.id}")
+      _ = cursor.fetchall()
       rowcount = cursor.rowcount
+      cursor.close()
       db.close()
       return rowcount > 0
    except Exception as e:
@@ -444,10 +448,11 @@ def inGame (player):
 
 def getCurrentGame (player):
    try:
-      db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+      db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
       cursor = db.cursor()
       cursor.execute(f"SELECT gameid FROM game_instance WHERE player1id = {player} OR player2id = {player}")
       gameid = cursor.fetchone()[0]
+      cursor.close()
       db.close()
       return gameid
    except Exception as e:
@@ -459,10 +464,12 @@ def finishedSelection (game):
 
 def separateChannel (serverid):
    try:
-      db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+      db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
       cursor = db.cursor()
       cursor.execute(f"SELECT separate_channel FROM server_info WHERE server_id = {serverid} AND separate_channel = 1")
+      _ = cursor.fetchone()
       rowcount = cursor.rowcount
+      cursor.close()
       db.close()
       return rowcount == 1
    except Exception as e:
@@ -470,7 +477,7 @@ def separateChannel (serverid):
       return False
 
 async def deleteGame (self, gameid, serverid):
-   db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+   db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
    cursor = db.cursor()
 
    try:
@@ -484,6 +491,7 @@ async def deleteGame (self, gameid, serverid):
       db.rollback()
       print(str(e))
 
+   cursor.close()
    db.close()
 
 def purePazaak (guild):

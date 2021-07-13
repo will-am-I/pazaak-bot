@@ -1,4 +1,4 @@
-import json, MySQLdb
+import json, mysql.connector
 
 with open('./config.json') as data:
    config = json.load(data)
@@ -20,7 +20,7 @@ class Player:
       self.stood = False
       self.finishedSelection = False
       
-      db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+      db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
       cursor = db.cursor()
       try:
          cursor.execute(f"INSERT IGNORE INTO pazaak_inventory (discordid) VALUES ({player.id})")
@@ -28,6 +28,7 @@ class Player:
       except Exception as e:
          db.rollback()
          print(str(e))
+      cursor.close()
       db.close()
 
    def set (self, sideDeck):

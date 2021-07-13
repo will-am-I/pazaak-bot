@@ -1,4 +1,4 @@
-import discord, json, MySQLdb
+import discord, json, mysql.connector
 from discord.ext import commands
 
 with open('./config.json') as data:
@@ -12,7 +12,7 @@ class Announcement(commands.Cog):
    @commands.command()
    async def announce (self, ctx, *message):
       if ctx.message.author.id == config['dev_id']:
-         db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+         db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
          cursor = db.cursor()
 
          try:
@@ -23,6 +23,7 @@ class Announcement(commands.Cog):
          except Exception as e:
             print(str(e))
 
+         cursor.close()
          db.close()
 
 def setup (client):

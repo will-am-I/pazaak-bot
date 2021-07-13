@@ -1,5 +1,5 @@
 from datetime import datetime
-import discord, json, MySQLdb, collections, os
+import discord, json, mysql.connector, collections, os
 from random import randint
 from player import Player
 from PIL import Image, ImageDraw, ImageFont
@@ -93,7 +93,7 @@ class Game:
       self.challenged = False
 
    def showCardOptions (self, player):
-      db = MySQLdb.connect("localhost", config['database_user'], config['database_pass'], config['database_schema'])
+      db = mysql.connector.connect("localhost", config['database_user'], config['database_pass'], config['database_schema'])
       cursor = db.cursor()
 
       embed = discord.Embed(title="Choose your side deck", colour=discord.Colour(0x4e7e8a), description="You may choose up to 10 cards, and 4 will be chosen at random to play.")
@@ -109,6 +109,7 @@ class Game:
       except Exception as e:
          print(str(e))
       embed.set_footer(text="Use **p.help sidedeck** if you need help with how to choose your side deck or **p.sidedeck** to view your inventory again.")
+      cursor.close()
       db.close()
 
       return embed
@@ -125,7 +126,7 @@ class Game:
       dbcard = next(item['db_name'] for item in cards['cards'] if item['code'] == card)
       amountOwned = 0
 
-      db = MySQLdb.connect(config['database_server'], config['database_user'], config['database_pass'], config['database_schema'])
+      db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
       cursor = db.cursor()
 
       try:
@@ -134,6 +135,7 @@ class Game:
       except Exception as e:
          print(str(e))
 
+      cursor.close()
       db.close()
 
       return amountOwned
@@ -161,7 +163,7 @@ class Game:
       return len(self.players[player].selection) == 10
 
    def finishSelection (self, player):
-      db = MySQLdb.connect("localhost", config['database_user'], config['database_pass'], config['database_schema'])
+      db = mysql.connector.connect("localhost", config['database_user'], config['database_pass'], config['database_schema'])
       cursor = db.cursor()
 
       try:
@@ -176,6 +178,7 @@ class Game:
          db.rollback()
          print(str(e))
 
+      cursor.close()
       db.close()
       self.players[player].finish()
 
@@ -514,7 +517,7 @@ class Game:
          return False
 
    def declareGameWinner (self, serverid):
-      db = MySQLdb.connect("localhost", config['database_user'], config['database_pass'], config['database_schema'])
+      db = mysql.connector.connect("localhost", config['database_user'], config['database_pass'], config['database_schema'])
       cursor = db.cursor()
 
       if serverid != config['test_server']:
@@ -525,6 +528,7 @@ class Game:
          except Exception as e:
             db.rollback()
             print(str(e))
+         cursor.close()
          db.close()
 
       statement = f"{self.players[self.gameWinner].mention} has won the game!"
