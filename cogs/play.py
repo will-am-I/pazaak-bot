@@ -384,11 +384,9 @@ class Play(commands.Cog):
       if ctx.message.author.id == config['dev_id']:
          db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
          cursor = db.cursor()
-
          try:
             cursor.execute("SELECT gameid, serverid FROM game_instance")
             results = cursor.fetchall()
-
             for result in results:
                await deleteGame(self, result[0], result[1])
          except Exception as e:
