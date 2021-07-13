@@ -93,7 +93,7 @@ class Game:
       self.challenged = False
 
    def showCardOptions (self, player):
-      db = mysql.connector.connect("localhost", config['database_user'], config['database_pass'], config['database_schema'])
+      db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
       cursor = db.cursor()
 
       embed = discord.Embed(title="Choose your side deck", colour=discord.Colour(0x4e7e8a), description="You may choose up to 10 cards, and 4 will be chosen at random to play.")
@@ -163,7 +163,7 @@ class Game:
       return len(self.players[player].selection) == 10
 
    def finishSelection (self, player):
-      db = mysql.connector.connect("localhost", config['database_user'], config['database_pass'], config['database_schema'])
+      db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
       cursor = db.cursor()
 
       try:
@@ -517,7 +517,7 @@ class Game:
          return False
 
    def declareGameWinner (self, serverid):
-      db = mysql.connector.connect("localhost", config['database_user'], config['database_pass'], config['database_schema'])
+      db = mysql.connector.connect(host=config['database_server'], user=config['database_user'], password=config['database_pass'], database=config['database_schema'])
       cursor = db.cursor()
 
       if serverid != config['test_server']:
