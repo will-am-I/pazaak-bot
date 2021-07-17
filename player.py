@@ -58,12 +58,16 @@ class Player:
          self.sideDeck.remove(card)
          
          if card == "F2/4":
+            self.fieldCards.append(value)
+            self.fieldCardIDs.append("f0")
             values = [2,4,-2,-4]
             for i, fieldCard in enumerate(self.fieldCards):
                if fieldCard in values:
                   self.fieldCards[i] *= -1
 
          elif card == "F3/6":
+            self.fieldCards.append(value)
+            self.fieldCardIDs.append("f0")
             values = [3,6,-3,-6]
             for i, fieldCard in enumerate(self.fieldCards):
                if fieldCard in values:
