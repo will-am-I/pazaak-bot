@@ -189,7 +189,7 @@ class Play(commands.Cog):
             if currentPlayer >= 0:
                if self.games[gameid].completedSideDeck(currentPlayer):
                   self.games[gameid].finishSelection(currentPlayer)
-                  await ctx.message.channel.send(embed=self.games[gameid].showPlayableCards(currentPlayer))
+                  await ctx.message.channel.send(embed=self.games[gameid].showPlayableCards(currentPlayer), file=self.games[gameid].getPlayableCards(currentPlayer))
                else:
                   await ctx.message.channel.send("You need to select 10 cards before moving on.")
 

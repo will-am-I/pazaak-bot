@@ -20,6 +20,7 @@ TOTAL_CROP_COORDS = [(203, 49, 240, 66), (305, 49, 342, 66)]
 FIELD_COORDS = [[(74, 83), (128, 83), (183, 83), (74, 151), (128, 151), (183, 151), (74, 219), (128, 219), (183, 219)], [(314, 83), (368, 83), (422, 83), (314, 151), (368, 151), (422, 151), (314, 219), (368, 219), (422, 219)]]
 DECK_COORDS = [[(36, 306), (90, 306), (144, 306), (198, 306)], [(298, 306), (352, 306), (406, 306), (460, 306)]]
 DECK_CROP_COORDS = [[(36, 306, 85, 369), (90, 306, 139, 369), (144, 306, 193, 369), (198, 306, 247, 369)], [(298, 306, 347, 369), (352, 306, 401, 369), (406, 306, 455, 369), (460, 306, 509, 369)]]
+HAND_COORDS = [(2, 19), (57, 19), (111, 19), (164, 19)]
 CARD_SIZE = (49, 63)
 
 class Game:
@@ -156,7 +157,7 @@ class Game:
       deck += f"\nTotal cards: {len(self.players[player].selection)}"
 
       embed = discord.Embed(title="Your current selection:", colour=discord.Colour(0x4e7e8a), description=deck)
-      embed.set_footer(text="Use **p.help 2** if you need help with how to choose your side deck or **p.sidedeck** to view your inventory again.")
+      embed.set_footer(text="Use **p.help 2** if you need help with how to choose your side deck or **p.inventory** to view your inventory again.")
       return embed
 
    def completedSideDeck (self, player):
@@ -184,8 +185,18 @@ class Game:
 
    def finishedSelection (self, player):
       return self.players[player].finishedSelection
-      
+   
    def showPlayableCards (self, player):
+      embed = discord.Embed(colour=discord.Colour(0x4e7e8a))
+      embed.set_image(url=f"attachment://hand{player}.png")
+      return embed
+
+   def getPlayableCards (self, player):
+      hand = Image.open("./images/hand.png")
+      draw = ImageDraw.Draw(hand)
+      font = ImageFont.truetype("./BankGothic Regular.ttf", size=20)
+      draw.text((108, 12), "Your Cards", (255, 255, 255), anchor="ms", font=font)
+
       selected = []
       cards = []
 
@@ -205,7 +216,7 @@ class Game:
       for card in cards:
          deck += f"\n[{card}]\n"
 
-      return discord.Embed(title="Your playable cards:", colour=discord.Colour(0x4e7e8a), description=deck)
+      return discord.Embed(colour=discord.Colour(0x4e7e8a))
 
    def coinToss (self, side):
       sides = ['heads', 'tails']
